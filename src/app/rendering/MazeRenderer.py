@@ -25,6 +25,9 @@ class MazeRenderer:
             maze (list[list[int]]): A 2D grid representing the maze where each
                 integer holds the bitmask of the cell's walls.
             pixel_put (Callable): A function used to draw a single pixel.
+            offset_x (int): Horizontal offset to apply when rendering.
+            offset_y (int): Vertical offset to apply when rendering.
+            cell_size (int): Size of a maze cell in pixels.
         """
         for y, row in enumerate(maze):
             for x, cell in enumerate(row):
@@ -55,14 +58,17 @@ class MazeRenderer:
             y (int): The y-coordinate (row index) of the cell in the grid.
             cell (int): The integer bitmask representing the walls of the cell.
             pixel_put (Callable): A function used to draw a single pixel.
+            offset_x (int): Horizontal offset to apply when rendering.
+            offset_y (int): Vertical offset to apply when rendering.
+            cell_size (int): Size of a maze cell in pixels.
         """
 
         unpacked_cell = MazeUtils().unpack_cell(cell)
-        
+
         px = x * cell_size + offset_x
         py = y * cell_size + offset_y
         cell_max = cell_size - 1
-        
+
         if unpacked_cell["N"]:
             for k in range(cell_size):
                 pixel_put(
@@ -70,7 +76,7 @@ class MazeRenderer:
                     py,
                     Color.WHITE
                 )
-                
+
         if unpacked_cell["S"]:
             for k in range(cell_size):
                 pixel_put(
@@ -78,7 +84,7 @@ class MazeRenderer:
                     py + cell_max,
                     Color.WHITE
                 )
-                
+
         if unpacked_cell["E"]:
             for k in range(cell_size):
                 pixel_put(
@@ -86,7 +92,7 @@ class MazeRenderer:
                     py + k,
                     Color.WHITE
                 )
-                
+
         if unpacked_cell["W"]:
             for k in range(cell_size):
                 pixel_put(

@@ -1,7 +1,9 @@
 from mlx import Mlx
 from src.app.game.GameEngine import GameEngine
 from .GameRenderer import GameRenderer
+from .SpriteRenderer import SpriteRenderer
 import time
+
 
 class GlobalRenderer:
     """Renderer managing the MLX graphics context and window."""
@@ -22,6 +24,14 @@ class GlobalRenderer:
         window_width: int | None = None,
         window_height: int | None = None
     ) -> None:
+        """Create the window and start the MLX render loop.
+
+        Args:
+            maze (list[list[int]]): Maze grid to render.
+            game_engine (GameEngine): Game state with actors and sprites.
+            window_width (int | None): Optional override for window width.
+            window_height (int | None): Optional override for window height.
+        """
         try:
             self.mlx = Mlx()
         except OSError as e:
@@ -56,14 +66,20 @@ class GlobalRenderer:
             win_height=win_height,
             cell_size=self.CELL_SIZE
         )
+        self.sprite_renderer = SpriteRenderer(
+            self.mlx,
+            self.mlx_ptr,
+            self.win_ptr,
+            cell_size=self.CELL_SIZE
+        )
         self.game_renderer.render_maze(self.maze)
 
-        self.player_frames = self.game_renderer.load_sprite_frames(
+        self.player_frames = self.sprite_renderer.load_sprite_frames(
             self.game_engine.player.sprites.mov_right
         )
         self.npc_frames: dict[str, list[int]] = {}
         for name, npc in self.game_engine.npcs.items():
-            self.npc_frames[name] = self.game_renderer.load_sprite_frames(
+            self.npc_frames[name] = self.sprite_renderer.load_sprite_frames(
                 npc.sprites.mov_right,
                 recolor=npc.color
             )
@@ -78,7 +94,11 @@ class GlobalRenderer:
         self.mlx.mlx_loop(self.mlx_ptr)
 
     def render_next_frame(self, _) -> None:
-        """Called continuously by MLX to update the screen."""
+        """Render a single frame and advance animation timing.
+
+        Args:
+            _ (object): Unused MLX callback parameter.
+        """
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
         self.game_renderer.render_maze(self.maze)
@@ -88,18 +108,22 @@ class GlobalRenderer:
             self.last_frame_time = now
 
         for name, npc in self.game_engine.npcs.items():
-            self.game_renderer.render_sprite_frame(
+            self.sprite_renderer.render_sprite_frame(
                 npc.x,
                 npc.y,
                 self.npc_frames.get(name, []),
-                self.frame_index
+                self.frame_index,
+                self.game_renderer.offset_x,
+                self.game_renderer.offset_y
             )
 
-        self.game_renderer.render_sprite_frame(
+        self.sprite_renderer.render_sprite_frame(
             self.game_engine.player.x,
             self.game_engine.player.y,
             self.player_frames,
-            self.frame_index
+            self.frame_index,
+            self.game_renderer.offset_x,
+            self.game_renderer.offset_y
         )
 
         time.sleep(0.05)

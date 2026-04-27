@@ -8,7 +8,8 @@ class MazeUtils:
         walls.
 
         Args:
-            encrypted_int (int): The integer value representing the cell's walls.
+            encrypted_int (int): The integer value representing the cell's
+            walls.
 
         Returns:
             dict[str, bool]: A dictionary mapping directions

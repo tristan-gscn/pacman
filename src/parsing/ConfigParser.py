@@ -14,4 +14,3 @@ class ConfigParser():
             raise FileNotFoundError('Your file doesn\'t exist')
         with open(file_path, 'r') as f:
             return Configuration.model_validate_json(f.read())
-            

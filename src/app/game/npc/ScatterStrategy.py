@@ -2,5 +2,5 @@ from .NPCStrategy import NPCStrategy
 
 
 class ScatterStrategy(NPCStrategy):
-    def act(self):
+    def act(self) -> None:
         ...  # TODO

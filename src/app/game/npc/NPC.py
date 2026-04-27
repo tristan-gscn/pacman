@@ -1,6 +1,6 @@
-from app.game.Actor import Actor
-from app.game.npc import NPCStrategy
-from models import NPCSprites
+from ..Actor import Actor
+from .NPCStrategy import NPCStrategy
+from src.models import NPCSprites
 
 
 class NPC(Actor):

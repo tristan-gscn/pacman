@@ -1,4 +1,4 @@
-from app.game.npc import NPCStrategy
+from .NPCStrategy import NPCStrategy
 
 
 class ChaseStrategy(NPCStrategy):

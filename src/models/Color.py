@@ -9,3 +9,4 @@ class Color(IntEnum):
     CYAN = 0xFF00FFFF
     MAGENTA = 0xFFFF00FF
     YELLOW = 0xFFFFFF00
+    GOLD = 0xFFFFD700

@@ -1,5 +1,6 @@
 from mazegenerator.mazegenerator import MazeGenerator
 from src.parsing import ConfigParser
+from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
 
 
@@ -13,7 +14,8 @@ def main() -> None:
     try:
         mazegen = MazeGenerator()
         mazegen.generate()
-        GlobalRenderer(mazegen.maze)
+        game_engine = GameEngine()
+        GlobalRenderer(mazegen.maze, game_engine)
     except RuntimeError as e:
         print(f"Renderer initialization skipped: {e}")
 

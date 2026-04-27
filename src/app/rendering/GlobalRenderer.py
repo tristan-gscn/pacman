@@ -1,4 +1,5 @@
 from mlx import Mlx
+from src.app.game.GameEngine import GameEngine
 from .GameRenderer import GameRenderer
 import time
 
@@ -12,10 +13,12 @@ class GlobalRenderer:
     WINDOW_WIDTH: int = 1200
     WINDOW_HEIGHT: int = 800
     CELL_SIZE: int = 40
+    FRAME_DELAY_SECONDS: float = 0.1
 
     def __init__(
         self,
         maze: list[list[int]],
+        game_engine: GameEngine,
         window_width: int | None = None,
         window_height: int | None = None
     ) -> None:
@@ -43,7 +46,9 @@ class GlobalRenderer:
                 self.mlx.mlx_release(self.mlx_ptr)
             raise RuntimeError("Failed to create MLX window")
 
-        game_renderer = GameRenderer(
+        self.maze = maze
+        self.game_engine = game_engine
+        self.game_renderer = GameRenderer(
             self.mlx,
             self.mlx_ptr,
             self.win_ptr,
@@ -51,7 +56,20 @@ class GlobalRenderer:
             win_height=win_height,
             cell_size=self.CELL_SIZE
         )
-        game_renderer.render_maze(maze)
+        self.game_renderer.render_maze(self.maze)
+
+        self.player_frames = self.game_renderer.load_sprite_frames(
+            self.game_engine.player.sprites.mov_right
+        )
+        self.npc_frames: dict[str, list[int]] = {}
+        for name, npc in self.game_engine.npcs.items():
+            self.npc_frames[name] = self.game_renderer.load_sprite_frames(
+                npc.sprites.mov_right,
+                recolor=npc.color
+            )
+
+        self.frame_index = 0
+        self.last_frame_time = time.monotonic()
 
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)
@@ -62,8 +80,26 @@ class GlobalRenderer:
     def render_next_frame(self, _) -> None:
         """Called continuously by MLX to update the screen."""
 
-        # self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+        self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+        self.game_renderer.render_maze(self.maze)
+        now = time.monotonic()
+        if now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
+            self.frame_index += 1
+            self.last_frame_time = now
 
-        # TODO: DRAW SOMETHING HERE
+        for name, npc in self.game_engine.npcs.items():
+            self.game_renderer.render_sprite_frame(
+                npc.x,
+                npc.y,
+                self.npc_frames.get(name, []),
+                self.frame_index
+            )
+
+        self.game_renderer.render_sprite_frame(
+            self.game_engine.player.x,
+            self.game_engine.player.y,
+            self.player_frames,
+            self.frame_index
+        )
 
         time.sleep(0.05)

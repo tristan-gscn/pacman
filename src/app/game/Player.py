@@ -1,5 +1,5 @@
-from app.game.Actor import Actor
-from models import PlayerSprites
+from .Actor import Actor
+from src.models import PlayerSprites
 
 
 class Player(Actor):

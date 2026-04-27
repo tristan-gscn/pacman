@@ -1,6 +1,6 @@
 
 {
-	"highscore_filename": "machin.txt",
+	"highscore_filename": "machin.json",
 	"width": 23,
 	"height": 43,
 	"lives": 3,

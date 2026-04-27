@@ -1,4 +1,6 @@
-from mazegenerator.mazegenerator import MazeGenerator
+from mazegenerator.mazegenerator import (  # type: ignore[import-untyped]
+    MazeGenerator,
+)
 from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer

@@ -1,5 +1,5 @@
 from pathlib import Path
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 
 
 class SpriteRenderer:

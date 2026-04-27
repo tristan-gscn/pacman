@@ -1,4 +1,4 @@
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
 from .GameRenderer import GameRenderer
 from .SpriteRenderer import SpriteRenderer
@@ -93,7 +93,7 @@ class GlobalRenderer:
         # Start the blocking loop
         self.mlx.mlx_loop(self.mlx_ptr)
 
-    def render_next_frame(self, _) -> None:
+    def render_next_frame(self, _: object) -> None:
         """Render a single frame and advance animation timing.
 
         Args:

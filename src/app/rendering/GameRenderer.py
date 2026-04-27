@@ -1,5 +1,5 @@
 from functools import partial
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 from .MazeRenderer import MazeRenderer
 
 

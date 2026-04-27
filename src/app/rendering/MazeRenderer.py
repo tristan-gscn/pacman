@@ -14,7 +14,7 @@ class MazeRenderer:
     def render_maze(
         self,
         maze: list[list[int]],
-        pixel_put: Callable,
+        pixel_put: Callable[[int, int, int], None],
         offset_x: int = 0,
         offset_y: int = 0,
         cell_size: int = 40
@@ -46,7 +46,7 @@ class MazeRenderer:
         x: int,
         y: int,
         cell: int,
-        pixel_put: Callable,
+        pixel_put: Callable[[int, int, int], None],
         offset_x: int,
         offset_y: int,
         cell_size: int

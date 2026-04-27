@@ -1,0 +1,14 @@
+
+{
+	"highscore_filename": "machin.txt",
+	"width": 23,
+	"height": 43,
+	"lives": 3,
+	"pacgum": 6,
+	"points_per_pacgum": 5,
+	"points_per_super_pacgum": 4,
+	"points_per_ghost": 5,
+	"seed": 56,
+	"level_max_time": 90
+
+}

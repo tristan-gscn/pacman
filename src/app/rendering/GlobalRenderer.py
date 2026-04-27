@@ -1,7 +1,5 @@
-from functools import partial
 from mlx import Mlx
-from src.app.rendering.MazeRenderer import MazeRenderer
-from mazegenerator.mazegenerator import MazeGenerator
+from .GameRenderer import GameRenderer
 import time
 
 class GlobalRenderer:
@@ -45,19 +43,15 @@ class GlobalRenderer:
                 self.mlx.mlx_release(self.mlx_ptr)
             raise RuntimeError("Failed to create MLX window")
 
-        maze_width = len(maze[0]) * self.CELL_SIZE
-        maze_height = len(maze) * self.CELL_SIZE
-        offset_x = max((win_width - maze_width) // 2, 0)
-        offset_y = max((win_height - maze_height) // 2, 0)
-
-        pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
-        MazeRenderer().render_maze(
-            maze,
-            pixel_put,
-            offset_x=offset_x,
-            offset_y=offset_y,
+        game_renderer = GameRenderer(
+            self.mlx,
+            self.mlx_ptr,
+            self.win_ptr,
+            win_width=win_width,
+            win_height=win_height,
             cell_size=self.CELL_SIZE
         )
+        game_renderer.render_maze(maze)
 
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)

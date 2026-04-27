@@ -1,6 +1,6 @@
 from typing import Callable
 
-from src.app.game_engine import MazeUtils
+from src.app.game import MazeUtils
 from src.models import Color
 
 

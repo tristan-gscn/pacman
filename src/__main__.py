@@ -1,3 +1,4 @@
+from mazegenerator.mazegenerator import MazeGenerator
 from src.parsing import ConfigParser
 from src.app.rendering import GlobalRenderer
 
@@ -10,7 +11,9 @@ def main() -> None:
         print(f"{type(e).__name__} error occured while parsing: {e}")
 
     try:
-        renderer = GlobalRenderer()
+        mazegen = MazeGenerator()
+        mazegen.generate()
+        GlobalRenderer(mazegen.maze)
     except RuntimeError as e:
         print(f"Renderer initialization skipped: {e}")
 

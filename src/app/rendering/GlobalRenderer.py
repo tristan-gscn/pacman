@@ -11,7 +11,7 @@ class GlobalRenderer:
     mlx_ptr: int
     win_ptr: int
 
-    def __init__(self) -> None:
+    def __init__(self, maze: list[list[int]]) -> None:
         try:
             self.mlx = Mlx()
         except OSError as e:
@@ -23,13 +23,10 @@ class GlobalRenderer:
         if not self.mlx_ptr:
             raise RuntimeError("Failed to initialize MLX context")
 
-        mazegen = MazeGenerator()
-        mazegen.generate()
-
         self.win_ptr = self.mlx.mlx_new_window(
             self.mlx_ptr,
-            len(mazegen.maze[0]) * 40 + 100,
-            len(mazegen.maze) * 40 + 100,
+            len(maze[0]) * 40 + 100,
+            len(maze) * 40 + 100,
             "Pacman"
         )
         if not self.win_ptr:
@@ -38,7 +35,7 @@ class GlobalRenderer:
             raise RuntimeError("Failed to create MLX window")
 
         pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
-        MazeRenderer().render_maze(mazegen.maze, pixel_put)
+        MazeRenderer().render_maze(maze, pixel_put)
 
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)

@@ -79,3 +79,13 @@ class MazeRenderer:
                     py + k,
                     Color.WHITE
                 )
+
+        # If we're in the 42 pattern, color the background in blue
+        if cell == 15:
+            for i in range(1, 39):
+                for j in range(1, 39):
+                    pixel_put(
+                        px + i,
+                        py + j,
+                        Color.BLUE
+                    )

@@ -14,7 +14,10 @@ class MazeRenderer:
     def render_maze(
         self,
         maze: list[list[int]],
-        pixel_put: Callable
+        pixel_put: Callable,
+        offset_x: int = 0,
+        offset_y: int = 0,
+        cell_size: int = 40
     ) -> None:
         """Renders the entire maze.
 
@@ -25,14 +28,25 @@ class MazeRenderer:
         """
         for y, row in enumerate(maze):
             for x, cell in enumerate(row):
-                self._render_cell(x, y, cell, pixel_put)
+                self._render_cell(
+                    x,
+                    y,
+                    cell,
+                    pixel_put,
+                    offset_x=offset_x,
+                    offset_y=offset_y,
+                    cell_size=cell_size
+                )
 
     def _render_cell(
         self,
         x: int,
         y: int,
         cell: int,
-        pixel_put: Callable
+        pixel_put: Callable,
+        offset_x: int,
+        offset_y: int,
+        cell_size: int
     ) -> None:
         """Renders a single cell of the maze at the specified grid coordinates.
 
@@ -45,11 +59,12 @@ class MazeRenderer:
 
         unpacked_cell = MazeUtils().unpack_cell(cell)
         
-        px = x * 40 + 50
-        py = y * 40 + 50
+        px = x * cell_size + offset_x
+        py = y * cell_size + offset_y
+        cell_max = cell_size - 1
         
         if unpacked_cell["N"]:
-            for k in range(40):
+            for k in range(cell_size):
                 pixel_put(
                     px + k,
                     py,
@@ -57,23 +72,23 @@ class MazeRenderer:
                 )
                 
         if unpacked_cell["S"]:
-            for k in range(40):
+            for k in range(cell_size):
                 pixel_put(
                     px + k,
-                    py + 39,
+                    py + cell_max,
                     Color.WHITE
                 )
                 
         if unpacked_cell["E"]:
-            for k in range(40):
+            for k in range(cell_size):
                 pixel_put(
-                    px + 39,
+                    px + cell_max,
                     py + k,
                     Color.WHITE
                 )
                 
         if unpacked_cell["W"]:
-            for k in range(40):
+            for k in range(cell_size):
                 pixel_put(
                     px,
                     py + k,
@@ -82,8 +97,8 @@ class MazeRenderer:
 
         # If we're in the 42 pattern, color the background in blue
         if cell == 15:
-            for i in range(1, 39):
-                for j in range(1, 39):
+            for i in range(1, cell_max):
+                for j in range(1, cell_max):
                     pixel_put(
                         px + i,
                         py + j,

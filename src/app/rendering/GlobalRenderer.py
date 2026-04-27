@@ -11,7 +11,16 @@ class GlobalRenderer:
     mlx_ptr: int
     win_ptr: int
 
-    def __init__(self, maze: list[list[int]]) -> None:
+    WINDOW_WIDTH: int = 1200
+    WINDOW_HEIGHT: int = 800
+    CELL_SIZE: int = 40
+
+    def __init__(
+        self,
+        maze: list[list[int]],
+        window_width: int | None = None,
+        window_height: int | None = None
+    ) -> None:
         try:
             self.mlx = Mlx()
         except OSError as e:
@@ -23,10 +32,12 @@ class GlobalRenderer:
         if not self.mlx_ptr:
             raise RuntimeError("Failed to initialize MLX context")
 
+        win_width = window_width or self.WINDOW_WIDTH
+        win_height = window_height or self.WINDOW_HEIGHT
         self.win_ptr = self.mlx.mlx_new_window(
             self.mlx_ptr,
-            len(maze[0]) * 40 + 100,
-            len(maze) * 40 + 100,
+            win_width,
+            win_height,
             "Pacman"
         )
         if not self.win_ptr:
@@ -34,8 +45,19 @@ class GlobalRenderer:
                 self.mlx.mlx_release(self.mlx_ptr)
             raise RuntimeError("Failed to create MLX window")
 
+        maze_width = len(maze[0]) * self.CELL_SIZE
+        maze_height = len(maze) * self.CELL_SIZE
+        offset_x = max((win_width - maze_width) // 2, 0)
+        offset_y = max((win_height - maze_height) // 2, 0)
+
         pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
-        MazeRenderer().render_maze(maze, pixel_put)
+        MazeRenderer().render_maze(
+            maze,
+            pixel_put,
+            offset_x=offset_x,
+            offset_y=offset_y,
+            cell_size=self.CELL_SIZE
+        )
 
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)

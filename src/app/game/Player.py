@@ -5,6 +5,7 @@ from src.models import PlayerSprites
 class Player(Actor):
     def __init__(self) -> None:
         super().__init__()
+        self.direction = "right"
         self.sprites = PlayerSprites(
             death="pacman/death.png",
             mov_left="pacman/mov_left.png",

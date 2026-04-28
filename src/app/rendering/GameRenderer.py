@@ -55,20 +55,20 @@ class GameRenderer:
             cell_size=self.cell_size
         )
 
-    def render_actor(self, grid_x: int, grid_y: int, color: int) -> None:
+    def render_actor(self, grid_x: float, grid_y: float, color: int) -> None:
         """Render a solid-color actor block at grid coordinates.
 
         Args:
-            grid_x (int): Actor x position in grid coordinates.
-            grid_y (int): Actor y position in grid coordinates.
+            grid_x (float): Actor x position in grid coordinates.
+            grid_y (float): Actor y position in grid coordinates.
             color (int): 32-bit RGBA color value.
         """
         pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
         padding = max(self.cell_size // 6, 2)
-        start_x = grid_x * self.cell_size + self.offset_x + padding
-        start_y = grid_y * self.cell_size + self.offset_y + padding
-        end_x = (grid_x + 1) * self.cell_size + self.offset_x - padding
-        end_y = (grid_y + 1) * self.cell_size + self.offset_y - padding
+        start_x = int(round(grid_x * self.cell_size + self.offset_x + padding))
+        start_y = int(round(grid_y * self.cell_size + self.offset_y + padding))
+        end_x = int(round((grid_x + 1) * self.cell_size + self.offset_x - padding))
+        end_y = int(round((grid_y + 1) * self.cell_size + self.offset_y - padding))
 
         for y in range(start_y, end_y):
             for x in range(start_x, end_x):

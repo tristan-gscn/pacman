@@ -1,3 +1,5 @@
+from typing import Callable
+
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
 from .GameRenderer import GameRenderer
@@ -22,7 +24,10 @@ class GlobalRenderer:
         maze: list[list[int]],
         game_engine: GameEngine,
         window_width: int | None = None,
-        window_height: int | None = None
+        window_height: int | None = None,
+        key_press_callback: Callable[[int], None] | None = None,
+        key_release_callback: Callable[[int], None] | None = None,
+        update_callback: Callable[[float], None] | None = None
     ) -> None:
         """Create the window and start the MLX render loop.
 
@@ -31,6 +36,12 @@ class GlobalRenderer:
             game_engine (GameEngine): Game state with actors and sprites.
             window_width (int | None): Optional override for window width.
             window_height (int | None): Optional override for window height.
+            key_press_callback (Callable[[int], None] | None): Optional handler
+                for key press events.
+            key_release_callback (Callable[[int], None] | None): Optional handler
+                for key release events.
+            update_callback (Callable[[float], None] | None): Optional per-frame
+                update handler receiving delta seconds.
         """
         try:
             self.mlx = Mlx()
@@ -56,8 +67,13 @@ class GlobalRenderer:
                 self.mlx.mlx_release(self.mlx_ptr)
             raise RuntimeError("Failed to create MLX window")
 
+        self.mlx.mlx_do_key_autorepeatoff(self.mlx_ptr)
+
         self.maze = maze
         self.game_engine = game_engine
+        self._key_press_callback = key_press_callback
+        self._key_release_callback = key_release_callback
+        self._update_callback = update_callback
         self.game_renderer = GameRenderer(
             self.mlx,
             self.mlx_ptr,
@@ -74,9 +90,20 @@ class GlobalRenderer:
         )
         self.game_renderer.render_maze(self.maze)
 
-        self.player_frames = self.sprite_renderer.load_sprite_frames(
-            self.game_engine.player.sprites.mov_right
-        )
+        self.player_frames = {
+            "left": self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_left
+            ),
+            "right": self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_right
+            ),
+            "up": self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_top
+            ),
+            "down": self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_bottom
+            ),
+        }
         self.npc_frames: dict[str, list[int]] = {}
         for name, npc in self.game_engine.npcs.items():
             self.npc_frames[name] = self.sprite_renderer.load_sprite_frames(
@@ -86,9 +113,14 @@ class GlobalRenderer:
 
         self.frame_index = 0
         self.last_frame_time = time.monotonic()
+        self.last_update_time = self.last_frame_time
 
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)
+        if self._key_press_callback is not None:
+            self.mlx.mlx_hook(self.win_ptr, 2, 1 << 0, self._handle_key_press, None)
+        if self._key_release_callback is not None:
+            self.mlx.mlx_hook(self.win_ptr, 3, 1 << 1, self._handle_key_release, None)
 
         # Start the blocking loop
         self.mlx.mlx_loop(self.mlx_ptr)
@@ -101,8 +133,13 @@ class GlobalRenderer:
         """
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
-        self.game_renderer.render_maze(self.maze)
         now = time.monotonic()
+        delta_seconds = now - self.last_update_time
+        self.last_update_time = now
+        if self._update_callback is not None:
+            self._update_callback(delta_seconds)
+
+        self.game_renderer.render_maze(self.maze)
         if now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
             self.frame_index += 1
             self.last_frame_time = now
@@ -117,13 +154,42 @@ class GlobalRenderer:
                 self.game_renderer.offset_y
             )
 
+        direction = getattr(self.game_engine.player, "direction", "right")
+        frames = self.player_frames.get(direction, self.player_frames["right"])
         self.sprite_renderer.render_sprite_frame(
             self.game_engine.player.x,
             self.game_engine.player.y,
-            self.player_frames,
+            frames,
             self.frame_index,
             self.game_renderer.offset_x,
             self.game_renderer.offset_y
         )
 
-        time.sleep(0.05)
+    def set_player_direction(self, direction: str) -> None:
+        """Set the active player sprite direction.
+
+        Args:
+            direction (str): One of "left", "right", "up", or "down".
+        """
+        if direction in self.player_frames:
+            self.game_engine.player.direction = direction
+
+    def _handle_key_press(self, keycode: int, _: object | None = None) -> None:
+        """Handle key press events and forward them to the app callback.
+
+        Args:
+            keycode (int): MLX key code for the pressed key.
+            _ (object): Unused MLX callback parameter.
+        """
+        if self._key_press_callback is not None:
+            self._key_press_callback(keycode)
+
+    def _handle_key_release(self, keycode: int, _: object | None = None) -> None:
+        """Handle key release events and forward them to the app callback.
+
+        Args:
+            keycode (int): MLX key code for the released key.
+            _ (object): Unused MLX callback parameter.
+        """
+        if self._key_release_callback is not None:
+            self._key_release_callback(keycode)

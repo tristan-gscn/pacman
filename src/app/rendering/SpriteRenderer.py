@@ -26,8 +26,8 @@ class SpriteRenderer:
 
     def render_sprite_frame(
         self,
-        grid_x: int,
-        grid_y: int,
+        grid_x: float,
+        grid_y: float,
         frames: list[int],
         frame_index: int,
         offset_x: int,
@@ -36,8 +36,8 @@ class SpriteRenderer:
         """Render a specific frame from a sprite sheet at grid coordinates.
 
         Args:
-            grid_x (int): Sprite x position in grid coordinates.
-            grid_y (int): Sprite y position in grid coordinates.
+            grid_x (float): Sprite x position in grid coordinates.
+            grid_y (float): Sprite y position in grid coordinates.
             frames (list[int]): MLX image pointers for each frame.
             frame_index (int): Index of the frame to draw.
             offset_x (int): Horizontal offset to apply when rendering.
@@ -46,8 +46,8 @@ class SpriteRenderer:
         if not frames:
             return
         img_ptr = frames[frame_index % len(frames)]
-        px = grid_x * self.cell_size + offset_x
-        py = grid_y * self.cell_size + offset_y
+        px = int(round(grid_x * self.cell_size + offset_x))
+        py = int(round(grid_y * self.cell_size + offset_y))
         self.mlx.mlx_put_image_to_window(
             self.mlx_ptr,
             self.win_ptr,

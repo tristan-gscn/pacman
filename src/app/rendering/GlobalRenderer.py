@@ -175,6 +175,8 @@ class GlobalRenderer:
 
             if ui_mode != self._last_ui_mode:
                 self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                if ui_mode == UIMode.PAUSE_MENU:
+                    self._render_game_frame(update_state=False)
                 if screen is not None:
                     screen.render(
                         self.mlx,
@@ -189,14 +191,17 @@ class GlobalRenderer:
         self._last_ui_mode = ui_mode
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+        self._render_game_frame(update_state=True)
+
+    def _render_game_frame(self, update_state: bool) -> None:
         now = time.monotonic()
         self.last_update_time = now
 
-        if self._update_callback is not None:
+        if update_state and self._update_callback is not None:
             self._update_callback()
 
         self.game_renderer.render_maze(self.maze)
-        if now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
+        if update_state and now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
             self.frame_index += 1
             self.last_frame_time = now
 

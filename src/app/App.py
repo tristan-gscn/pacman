@@ -1,18 +1,28 @@
+import os
+
 from mazegenerator.mazegenerator import (  # type: ignore[import-untyped]
     MazeGenerator,
 )
 from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
+from src.models import UIMode
 
 
 class App:
     """High-level application entry point for game and rendering management."""
 
+    _KEY_ENTER = 65293
+    _KEY_SPACE = 32
+    _KEY_SHIFT_LEFT = 65505
+    _KEY_SHIFT_RIGHT = 65506
+    _KEY_ESCAPE = 65307
+
     def __init__(self, config_path: str = "config.json") -> None:
         self.config_path = config_path
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
+        self.ui_mode = UIMode.MAIN_MENU
 
     def run(self) -> None:
         try:
@@ -29,10 +39,14 @@ class App:
                 self.game_engine,
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
-                update_callback=self._on_update
+                update_callback=self._on_update,
+                ui_mode_provider=self.get_ui_mode
             )
         except RuntimeError as e:
             print(f"Renderer initialization skipped: {e}")
+
+    def get_ui_mode(self) -> UIMode:
+        return self.ui_mode
 
     def _on_key_press(self, keycode: int) -> None:
         """Handle key press events to update movement direction.
@@ -40,8 +54,35 @@ class App:
         Args:
             keycode (int): MLX key code for the pressed key.
         """
+        if self.ui_mode == UIMode.MAIN_MENU:
+            self._handle_main_menu_key(keycode)
+            return
+        if self.ui_mode in (UIMode.HIGHSCORES, UIMode.INSTRUCTIONS):
+            if keycode == self._KEY_ESCAPE:
+                self.ui_mode = UIMode.MAIN_MENU
+            return
+        if self.ui_mode != UIMode.IN_GAME:
+            return
         if self.game_engine is not None:
             self.game_engine.on_key_press(keycode)
+
+    def _handle_main_menu_key(self, keycode: int) -> None:
+        if keycode == self._KEY_ENTER:
+            self.ui_mode = UIMode.IN_GAME
+            return
+        if keycode == self._KEY_SPACE:
+            self.ui_mode = UIMode.HIGHSCORES
+            return
+        if keycode in (self._KEY_SHIFT_LEFT, self._KEY_SHIFT_RIGHT):
+            self.ui_mode = UIMode.INSTRUCTIONS
+            return
+        if keycode == self._KEY_ESCAPE:
+            self._exit_app()
+
+    def _exit_app(self) -> None:
+        if self.renderer is not None:
+            self.renderer.close()
+        os._exit(0)
 
     def _on_key_release(self, keycode: int) -> None:
         """Handle key release events to stop or switch movement.
@@ -49,6 +90,8 @@ class App:
         Args:
             keycode (int): MLX key code for the released key.
         """
+        if self.ui_mode != UIMode.IN_GAME:
+            return
         if self.game_engine is not None:
             self.game_engine.on_key_release(keycode)
 
@@ -59,5 +102,7 @@ class App:
             delta_seconds (float): Elapsed time since last update.
         """
         if self.game_engine is None:
+            return
+        if self.ui_mode != UIMode.IN_GAME:
             return
         self.game_engine.update(delta_seconds)

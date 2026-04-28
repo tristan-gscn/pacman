@@ -7,8 +7,8 @@ npc_sprites = NPCSprites(
     fear="npc/fear.png",
     mov_left="npc/mov_left.png",
     mov_right="npc/mov_right.png",
-    mov_top="npc/mov_up.png",
-    mov_bottom="npc/mov_down.png"
+    mov_up="npc/mov_up.png",
+    mov_down="npc/mov_down.png"
 )
 
 

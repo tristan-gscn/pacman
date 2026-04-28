@@ -5,5 +5,5 @@ class PlayerSprites(BaseModel):
     death: str
     mov_left: str
     mov_right: str
-    mov_top: str
-    mov_bottom: str
+    mov_up: str
+    mov_down: str

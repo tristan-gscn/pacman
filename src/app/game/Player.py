@@ -10,6 +10,6 @@ class Player(Actor):
             death="pacman/death.png",
             mov_left="pacman/mov_left.png",
             mov_right="pacman/mov_right.png",
-            mov_top="pacman/mov_up.png",
-            mov_bottom="pacman/mov_down.png",
+            mov_up="pacman/mov_up.png",
+            mov_down="pacman/mov_down.png",
         )

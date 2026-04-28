@@ -98,10 +98,10 @@ class GlobalRenderer:
                 self.game_engine.player.sprites.mov_right
             ),
             "up": self.sprite_renderer.load_sprite_frames(
-                self.game_engine.player.sprites.mov_top
+                self.game_engine.player.sprites.mov_up
             ),
             "down": self.sprite_renderer.load_sprite_frames(
-                self.game_engine.player.sprites.mov_bottom
+                self.game_engine.player.sprites.mov_down
             ),
         }
         self.npc_frames: dict[str, list[int]] = {}

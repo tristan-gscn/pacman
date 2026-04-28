@@ -31,7 +31,7 @@ class App:
             "down": (0.0, 1.0),
         }
         self._pressed_directions: list[str] = []
-        self._active_direction: str | None = None
+        self._active_direction: str = "left"
 
     def run(self) -> None:
         try:
@@ -81,12 +81,9 @@ class App:
         if direction in self._pressed_directions:
             self._pressed_directions.remove(direction)
         if self._active_direction == direction:
-            self._active_direction = (
-                self._pressed_directions[-1]
-                if self._pressed_directions
-                else None
-            )
-            if self._active_direction and self.game_engine is not None:
+            if self._pressed_directions:
+                self._active_direction = self._pressed_directions[-1]
+            if self.game_engine is not None:
                 self.game_engine.player.direction = self._active_direction
 
     def _on_update(self, delta_seconds: float) -> None:
@@ -95,7 +92,7 @@ class App:
         Args:
             delta_seconds (float): Elapsed time since last update.
         """
-        if self.game_engine is None or self._active_direction is None:
+        if self.game_engine is None:
             return
         if self.game_engine is not None:
             self.game_engine.player.direction = self._active_direction

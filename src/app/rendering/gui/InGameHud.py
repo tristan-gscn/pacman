@@ -52,6 +52,17 @@ class InGameHud(BaseScreen):
         top_y = max(maze_top - 30, 0)
         bottom_y = min(maze_bottom + 12, win_height - 30)
 
+        heart_scale = 2
+        heart_width = 8 * heart_scale
+        heart_height = 7 * heart_scale
+        heart_spacing = 6
+        total_width = (
+            self.max_lives * heart_width
+            + max(self.max_lives - 1, 0) * heart_spacing
+        )
+        hearts_x = max(maze_right - total_width, 0)
+        hearts_y = max(bottom_y - (heart_height - 16), 0)
+
         level_text = f"LEVEL {self.level}"
         time_text = self.time_remaining
         score_text = f"SCORE: {self.score}"
@@ -84,17 +95,6 @@ class InGameHud(BaseScreen):
             Color.WHITE,
             score_text
         )
-
-        heart_scale = 2
-        heart_width = 8 * heart_scale
-        heart_height = 7 * heart_scale
-        heart_spacing = 6
-        total_width = (
-            self.max_lives * heart_width
-            + max(self.max_lives - 1, 0) * heart_spacing
-        )
-        hearts_x = max(maze_right - total_width, 0)
-        hearts_y = max(bottom_y - (heart_height - 16), 0)
 
         for idx in range(self.max_lives):
             filled = idx < self.current_lives

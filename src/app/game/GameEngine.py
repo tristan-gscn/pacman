@@ -18,7 +18,7 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 class GameEngine:
 
     def __init__(self, maze: list[list[int]]) -> None:
-        self.move_speed = 0.25
+        self.move_speed = 40 / 320
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {

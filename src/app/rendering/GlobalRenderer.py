@@ -201,6 +201,17 @@ class GlobalRenderer:
             self._update_callback()
 
         self.game_renderer.render_maze(self.maze)
+        maze_width = 0
+        maze_height = 0
+        if self.maze:
+            maze_width = len(self.maze[0]) * self.CELL_SIZE
+            maze_height = len(self.maze) * self.CELL_SIZE
+        self._hud.update_layout(
+            self.game_renderer.offset_x,
+            self.game_renderer.offset_y,
+            maze_width,
+            maze_height
+        )
         if update_state and now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
             self.frame_index += 1
             self.last_frame_time = now

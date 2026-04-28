@@ -40,8 +40,8 @@ class PauseMenuScreen(BaseScreen):
         )
 
         title = "PAUSE"
-        line1 = "RESUME (ENTER)"
-        line2 = "EXIT (ESC)"
+        line1 = "Resume (ENTER)"
+        line2 = "Exit (ESC)"
 
         title_x = max(box_x + (box_width // 2) - (len(title) * 6), box_x + 10)
         title_y = box_y + 30

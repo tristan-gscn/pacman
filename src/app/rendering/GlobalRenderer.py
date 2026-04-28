@@ -1,10 +1,20 @@
 from typing import Callable
+import time
 
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
+from src.models import UIMode
 from .GameRenderer import GameRenderer
 from .SpriteRenderer import SpriteRenderer
-import time
+from .gui import (
+    MenuScreen,
+    InGameHud,
+    PauseMenuScreen,
+    GameOverScreen,
+    VictoryScreen,
+    HighscoresScreen,
+    InstructionsScreen,
+)
 
 
 class GlobalRenderer:
@@ -20,14 +30,15 @@ class GlobalRenderer:
     FRAME_DELAY_SECONDS: float = 0.1
 
     def __init__(
-        self,
-        maze: list[list[int]],
-        game_engine: GameEngine,
-        window_width: int | None = None,
-        window_height: int | None = None,
-        key_press_callback: Callable[[int], None] | None = None,
-        key_release_callback: Callable[[int], None] | None = None,
-        update_callback: Callable[[float], None] | None = None
+            self,
+            maze: list[list[int]],
+            game_engine: GameEngine,
+            window_width: int | None = None,
+            window_height: int | None = None,
+            key_press_callback: Callable[[int], None] | None = None,
+            key_release_callback: Callable[[int], None] | None = None,
+            update_callback: Callable[[float], None] | None = None,
+            ui_mode_provider: Callable[[], UIMode] | None = None
     ) -> None:
         """Create the window and start the MLX render loop.
 
@@ -39,9 +50,11 @@ class GlobalRenderer:
             key_press_callback (Callable[[int], None] | None): Optional handler
                 for key press events.
             key_release_callback (Callable[[int], None] | None): Optional
-                handlerfor key release events.
+                handler for key release events.
             update_callback (Callable[[float], None] | None): Optional
                 per-frame update handler receiving delta seconds.
+            ui_mode_provider (Callable[[], UIMode] | None): Optional provider
+                to get the current UI state.
         """
         try:
             self.mlx = Mlx()
@@ -71,9 +84,22 @@ class GlobalRenderer:
 
         self.maze = maze
         self.game_engine = game_engine
+        self.win_width = win_width
+        self.win_height = win_height
         self._key_press_callback = key_press_callback
         self._key_release_callback = key_release_callback
         self._update_callback = update_callback
+        self._ui_mode_provider = ui_mode_provider
+        self._last_ui_mode: UIMode | None = None
+        self._gui_screens = {
+            UIMode.MAIN_MENU: MenuScreen(),
+            UIMode.PAUSE_MENU: PauseMenuScreen(),
+            UIMode.GAME_OVER: GameOverScreen(),
+            UIMode.VICTORY: VictoryScreen(),
+            UIMode.HIGHSCORES: HighscoresScreen(),
+            UIMode.INSTRUCTIONS: InstructionsScreen(),
+        }
+        self._hud = InGameHud()
         self.game_renderer = GameRenderer(
             self.mlx,
             self.mlx_ptr,
@@ -88,7 +114,6 @@ class GlobalRenderer:
             self.win_ptr,
             cell_size=self.CELL_SIZE
         )
-        self.game_renderer.render_maze(self.maze)
 
         self.player_frames = {
             "left": self.sprite_renderer.load_sprite_frames(
@@ -141,10 +166,32 @@ class GlobalRenderer:
         Args:
             _ (object): Unused MLX callback parameter.
         """
+        ui_mode = None
+        if self._ui_mode_provider is not None:
+            ui_mode = self._ui_mode_provider()
+
+        if ui_mode is not None and ui_mode != UIMode.IN_GAME:
+            screen = self._gui_screens.get(ui_mode)
+
+            if ui_mode != self._last_ui_mode:
+                self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                if screen is not None:
+                    screen.render(
+                        self.mlx,
+                        self.mlx_ptr,
+                        self.win_ptr,
+                        self.win_width,
+                        self.win_height
+                    )
+                self._last_ui_mode = ui_mode
+            return
+
+        self._last_ui_mode = ui_mode
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
         now = time.monotonic()
         self.last_update_time = now
+
         if self._update_callback is not None:
             self._update_callback()
 
@@ -174,9 +221,17 @@ class GlobalRenderer:
             self.game_renderer.offset_y
         )
 
+        self._hud.render(
+            self.mlx,
+            self.mlx_ptr,
+            self.win_ptr,
+            self.win_width,
+            self.win_height
+        )
+
     def set_player_direction(
-        self,
-        direction: str
+            self,
+            direction: str
     ) -> None:
         """Set the active player sprite direction.
 
@@ -187,8 +242,8 @@ class GlobalRenderer:
             self.game_engine.player.direction = direction
 
     def _handle_key_press(
-        self,
-        keycode: int, _: object | None = None
+            self,
+            keycode: int, _: object | None = None
     ) -> None:
         """Handle key press events and forward them to the app callback.
 
@@ -200,8 +255,8 @@ class GlobalRenderer:
             self._key_press_callback(keycode)
 
     def _handle_key_release(
-        self,
-        keycode: int, _: object | None = None
+            self,
+            keycode: int, _: object | None = None
     ) -> None:
         """Handle key release events and forward them to the app callback.
 
@@ -211,3 +266,12 @@ class GlobalRenderer:
         """
         if self._key_release_callback is not None:
             self._key_release_callback(keycode)
+
+    def close(self) -> None:
+        """Properly close and release MLX resources."""
+        if hasattr(self.mlx, "mlx_loop_end"):
+            self.mlx.mlx_loop_end(self.mlx_ptr)
+        if hasattr(self.mlx, "mlx_destroy_window"):
+            self.mlx.mlx_destroy_window(self.mlx_ptr, self.win_ptr)
+        if hasattr(self.mlx, "mlx_release"):
+            self.mlx.mlx_release(self.mlx_ptr)

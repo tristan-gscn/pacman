@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -19,9 +18,3 @@ class Actor:
     def set_game_engine(self, game_engine: GameEngine | None) -> None:
         self._game_engine = game_engine
 
-    def move(self, dx: float, dy: float) -> None:
-        if self._game_engine is None:
-            self.x += dx
-            self.y += dy
-            return
-        self._game_engine.move_actor(self, dx, dy)

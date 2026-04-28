@@ -23,7 +23,7 @@ class App:
         try:
             mazegen = MazeGenerator()
             mazegen.generate()
-            self.game_engine = GameEngine()
+            self.game_engine = GameEngine(mazegen.maze)
             self.renderer = GlobalRenderer(
                 mazegen.maze,
                 self.game_engine,
@@ -52,12 +52,9 @@ class App:
         if self.game_engine is not None:
             self.game_engine.on_key_release(keycode)
 
-    def _on_update(self, delta_seconds: float) -> None:
+    def _on_update(self) -> None:
         """Move the player continuously based on current input state.
-
-        Args:
-            delta_seconds (float): Elapsed time since last update.
         """
         if self.game_engine is None:
             return
-        self.game_engine.update(delta_seconds)
+        self.game_engine.update()

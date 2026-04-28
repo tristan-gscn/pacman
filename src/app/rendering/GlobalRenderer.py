@@ -144,10 +144,9 @@ class GlobalRenderer:
 
         self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
         now = time.monotonic()
-        delta_seconds = now - self.last_update_time
         self.last_update_time = now
         if self._update_callback is not None:
-            self._update_callback(delta_seconds)
+            self._update_callback()
 
         self.game_renderer.render_maze(self.maze)
         if now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:

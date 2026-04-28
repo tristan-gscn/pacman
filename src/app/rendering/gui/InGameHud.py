@@ -22,11 +22,47 @@ class InGameHud(BaseScreen):
         maze_offset_y: int,
         maze_width: int,
         maze_height: int
-    ) -> None:
-        self._maze_offset_x = max(maze_offset_x, 0)
-        self._maze_offset_y = max(maze_offset_y, 0)
-        self._maze_width = max(maze_width, 0)
-        self._maze_height = max(maze_height, 0)
+    ) -> bool:
+        next_offset_x = max(maze_offset_x, 0)
+        next_offset_y = max(maze_offset_y, 0)
+        next_width = max(maze_width, 0)
+        next_height = max(maze_height, 0)
+
+        changed = (
+            next_offset_x != self._maze_offset_x
+            or next_offset_y != self._maze_offset_y
+            or next_width != self._maze_width
+            or next_height != self._maze_height
+        )
+
+        self._maze_offset_x = next_offset_x
+        self._maze_offset_y = next_offset_y
+        self._maze_width = next_width
+        self._maze_height = next_height
+        return changed
+
+    def set_state(
+        self,
+        score: int,
+        level: int,
+        time_remaining: str,
+        max_lives: int,
+        current_lives: int
+    ) -> bool:
+        changed = (
+            score != self.score
+            or level != self.level
+            or time_remaining != self.time_remaining
+            or max_lives != self.max_lives
+            or current_lives != self.current_lives
+        )
+
+        self.score = score
+        self.level = level
+        self.time_remaining = time_remaining
+        self.max_lives = max_lives
+        self.current_lives = current_lives
+        return changed
 
     def render(
         self,

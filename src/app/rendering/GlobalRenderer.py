@@ -93,6 +93,7 @@ class GlobalRenderer:
         self._ui_mode_provider = ui_mode_provider
         self._last_ui_mode: UIMode | None = None
         self._needs_full_redraw = True
+        self._hud_dirty = True
         self._prev_actor_positions: dict[str, tuple[float, float]] = {}
         self._prev_pacgum_cells: set[tuple[int, int]] = set()
         self._gui_screens = {
@@ -213,13 +214,7 @@ class GlobalRenderer:
             self._update_hud_layout()
             self.game_renderer.render_pacgums(self.game_engine.pacgums)
             self._render_sprites()
-            self._hud.render(
-                self.mlx,
-                self.mlx_ptr,
-                self.win_ptr,
-                self.win_width,
-                self.win_height
-            )
+            self._render_hud(force=True)
             self._cache_frame_state()
             self._needs_full_redraw = False
             return
@@ -231,13 +226,7 @@ class GlobalRenderer:
             self.last_frame_time = now
 
         self._render_sprites()
-        self._hud.render(
-            self.mlx,
-            self.mlx_ptr,
-            self.win_ptr,
-            self.win_width,
-            self.win_height
-        )
+        self._render_hud(force=False)
         self._cache_frame_state()
 
     def _update_hud_layout(self) -> None:
@@ -246,12 +235,25 @@ class GlobalRenderer:
         if self.maze:
             maze_width = len(self.maze[0]) * self.CELL_SIZE
             maze_height = len(self.maze) * self.CELL_SIZE
-        self._hud.update_layout(
+        if self._hud.update_layout(
             self.game_renderer.offset_x,
             self.game_renderer.offset_y,
             maze_width,
             maze_height
+        ):
+            self._hud_dirty = True
+
+    def _render_hud(self, force: bool) -> None:
+        if not force and not self._hud_dirty:
+            return
+        self._hud.render(
+            self.mlx,
+            self.mlx_ptr,
+            self.win_ptr,
+            self.win_width,
+            self.win_height
         )
+        self._hud_dirty = False
 
     def _render_incremental(self) -> None:
         current_pacgum_cells = {

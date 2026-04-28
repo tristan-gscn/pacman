@@ -11,3 +11,4 @@ class Color(IntEnum):
     MAGENTA = 0xFFFF00FF
     YELLOW = 0xFFFFFF00
     GOLD = 0xFFFFD700
+    SALMON = 0xFFFA8072

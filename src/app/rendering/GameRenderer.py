@@ -1,5 +1,7 @@
 from functools import partial
 from mlx import Mlx  # type: ignore[import-untyped]
+from src.models import Color
+from src.app.game.PacGum import PacGum
 from .MazeRenderer import MazeRenderer
 
 
@@ -54,3 +56,23 @@ class GameRenderer:
             offset_y=self.offset_y,
             cell_size=self.cell_size
         )
+
+    def render_pacgums(self, pacgums: list[PacGum]) -> None:
+        radius = max(self.cell_size // 12, 1)
+        pixel_put = self.mlx.mlx_pixel_put
+        half_cell = self.cell_size / 2.0
+
+        for pacgum in pacgums:
+            center_x = int(round(pacgum.x * self.cell_size + self.offset_x + half_cell))
+            center_y = int(round(pacgum.y * self.cell_size + self.offset_y + half_cell))
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    if dx * dx + dy * dy > radius * radius:
+                        continue
+                    pixel_put(
+                        self.mlx_ptr,
+                        self.win_ptr,
+                        center_x + dx,
+                        center_y + dy,
+                        Color.WHITE
+                    )

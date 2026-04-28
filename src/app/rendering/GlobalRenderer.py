@@ -212,6 +212,7 @@ class GlobalRenderer:
             maze_width,
             maze_height
         )
+        self.game_renderer.render_pacgums(self.game_engine.pacgums)
         if update_state and now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
             self.frame_index += 1
             self.last_frame_time = now

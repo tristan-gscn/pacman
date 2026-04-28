@@ -38,10 +38,10 @@ class GlobalRenderer:
             window_height (int | None): Optional override for window height.
             key_press_callback (Callable[[int], None] | None): Optional handler
                 for key press events.
-            key_release_callback (Callable[[int], None] | None): Optional handler
-                for key release events.
-            update_callback (Callable[[float], None] | None): Optional per-frame
-                update handler receiving delta seconds.
+            key_release_callback (Callable[[int], None] | None): Optional
+                handlerfor key release events.
+            update_callback (Callable[[float], None] | None): Optional
+                per-frame update handler receiving delta seconds.
         """
         try:
             self.mlx = Mlx()
@@ -118,9 +118,19 @@ class GlobalRenderer:
         # Register the function that will be called continuously
         self.mlx.mlx_loop_hook(self.mlx_ptr, self.render_next_frame, None)
         if self._key_press_callback is not None:
-            self.mlx.mlx_hook(self.win_ptr, 2, 1 << 0, self._handle_key_press, None)
+            self.mlx.mlx_hook(
+                self.win_ptr,
+                2, 1 << 0,
+                self._handle_key_press,
+                None
+            )
         if self._key_release_callback is not None:
-            self.mlx.mlx_hook(self.win_ptr, 3, 1 << 1, self._handle_key_release, None)
+            self.mlx.mlx_hook(
+                self.win_ptr,
+                3, 1 << 1,
+                self._handle_key_release,
+                None
+            )
 
         # Start the blocking loop
         self.mlx.mlx_loop(self.mlx_ptr)
@@ -165,7 +175,10 @@ class GlobalRenderer:
             self.game_renderer.offset_y
         )
 
-    def set_player_direction(self, direction: str) -> None:
+    def set_player_direction(
+        self,
+        direction: str
+    ) -> None:
         """Set the active player sprite direction.
 
         Args:
@@ -174,7 +187,10 @@ class GlobalRenderer:
         if direction in self.player_frames:
             self.game_engine.player.direction = direction
 
-    def _handle_key_press(self, keycode: int, _: object | None = None) -> None:
+    def _handle_key_press(
+        self,
+        keycode: int, _: object | None = None
+    ) -> None:
         """Handle key press events and forward them to the app callback.
 
         Args:
@@ -184,7 +200,10 @@ class GlobalRenderer:
         if self._key_press_callback is not None:
             self._key_press_callback(keycode)
 
-    def _handle_key_release(self, keycode: int, _: object | None = None) -> None:
+    def _handle_key_release(
+        self,
+        keycode: int, _: object | None = None
+    ) -> None:
         """Handle key release events and forward them to the app callback.
 
         Args:

@@ -13,25 +13,6 @@ class App:
         self.config_path = config_path
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
-        self.move_speed = 3.0
-        self._key_to_direction: dict[int, str] = {
-            65361: "left",
-            97: "left",
-            65363: "right",
-            100: "right",
-            65362: "up",
-            119: "up",
-            65364: "down",
-            115: "down",
-        }
-        self._direction_vectors: dict[str, tuple[float, float]] = {
-            "left": (-1.0, 0.0),
-            "right": (1.0, 0.0),
-            "up": (0.0, -1.0),
-            "down": (0.0, 1.0),
-        }
-        self._pressed_directions: list[str] = []
-        self._active_direction: str = "left"
 
     def run(self) -> None:
         try:
@@ -59,15 +40,8 @@ class App:
         Args:
             keycode (int): MLX key code for the pressed key.
         """
-        direction = self._key_to_direction.get(keycode)
-        if direction is None:
-            return
-        if direction in self._pressed_directions:
-            self._pressed_directions.remove(direction)
-        self._pressed_directions.append(direction)
-        self._active_direction = direction
         if self.game_engine is not None:
-            self.game_engine.player.direction = direction
+            self.game_engine.on_key_press(keycode)
 
     def _on_key_release(self, keycode: int) -> None:
         """Handle key release events to stop or switch movement.
@@ -75,16 +49,8 @@ class App:
         Args:
             keycode (int): MLX key code for the released key.
         """
-        direction = self._key_to_direction.get(keycode)
-        if direction is None:
-            return
-        if direction in self._pressed_directions:
-            self._pressed_directions.remove(direction)
-        if self._active_direction == direction:
-            if self._pressed_directions:
-                self._active_direction = self._pressed_directions[-1]
-            if self.game_engine is not None:
-                self.game_engine.player.direction = self._active_direction
+        if self.game_engine is not None:
+            self.game_engine.on_key_release(keycode)
 
     def _on_update(self, delta_seconds: float) -> None:
         """Move the player continuously based on current input state.
@@ -94,8 +60,4 @@ class App:
         """
         if self.game_engine is None:
             return
-        if self.game_engine is not None:
-            self.game_engine.player.direction = self._active_direction
-        dx, dy = self._direction_vectors[self._active_direction]
-        self.game_engine.player.x += dx * self.move_speed * delta_seconds
-        self.game_engine.player.y += dy * self.move_speed * delta_seconds
+        self.game_engine.update(delta_seconds)

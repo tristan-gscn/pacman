@@ -102,4 +102,4 @@ class App:
             return
         if self.ui_mode != UIMode.IN_GAME:
             return
-        self.game_engine.update(delta_seconds)
+        self.game_engine.update()

@@ -15,7 +15,7 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 class GameEngine:
 
     def __init__(self, maze: list[list[int]]) -> None:
-        self.move_speed = 0.2
+        self.move_speed = 0.25
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {
             65361: "left",
@@ -127,7 +127,8 @@ class GameEngine:
         if can_move:
             self.set_player_direction(self._active_direction)
             dx, dy = self._direction_vectors[self._active_direction]
-            self.move_actor(self.player, dx * self.move_speed, dy * self.move_speed)
+            self.move_actor(self.player, dx * self.move_speed,
+                            dy * self.move_speed)
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])

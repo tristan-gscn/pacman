@@ -150,7 +150,8 @@ class GameEngine:
         if can_move:
             self.set_player_direction(self._active_direction)
             dx, dy = self._direction_vectors[self._active_direction]
-            self.move_actor(self.player, dx * self.move_speed, dy * self.move_speed)
+            self.move_actor(self.player, dx * self.move_speed,
+                            dy * self.move_speed)
 
         player_cell = (int(round(self.player.x)), int(round(self.player.y)))
         if self.pacgums:

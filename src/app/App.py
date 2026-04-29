@@ -116,3 +116,13 @@ class App:
             return
         self.game_engine.update()
         self.game_engine.update_ghosts()
+        self.collisions()
+
+    def collisions(self) -> None:
+        px: int = self.game_engine.player.x
+        py: int = self.game_engine.player.y
+        for ghost in self.game_engine.npcs.values():
+            if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 30:
+                self.renderer._hud.current_lives -= 1
+
+

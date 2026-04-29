@@ -44,7 +44,7 @@ class GameEngine:
         self.npcs: dict[str,
                         NPC] = {
                             "Blinky":
-                            NPC(strategy=FleeStrategy(),
+                            NPC(strategy=ChaseStrategy(),
                                 sprites=npc_sprites,
                                 color=Color.RED),
                             "Pinky":

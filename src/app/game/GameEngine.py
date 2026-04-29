@@ -163,14 +163,36 @@ class GameEngine:
             ]
 
     def update_ghosts(self) -> None:
+        ghost = self.npcs["Blinky"]
+        current_cx = round(ghost.x)
+        current_cy = round(ghost.y)
 
-        if int(self.npcs["Blinky"].x) == self.npcs["Blinky"].x and int(
-                self.npcs["Blinky"].y) == self.npcs["Blinky"].y:
+        tolerance = 0.05
+        is_aligned_x = abs(ghost.x - current_cx) < tolerance
+        is_aligned_y = abs(ghost.y - current_cy) < tolerance
+
+        if is_aligned_x:
+            ghost.x = float(current_cx)
+        if is_aligned_y:
+            ghost.y = float(current_cy)
+
+        if is_aligned_x and is_aligned_y:
             self.gosts_path()
 
-        dx, dy = self._direction_vectors[self.npcs["Blinky"].direction]
-        self.move_actor(self.npcs["Blinky"], dx * self.move_speed,
-                        dy * self.move_speed)
+        can_move = True
+        if ghost.direction in ["left", "right"] and is_aligned_x:
+            walls = self.check_walls(current_cx, current_cy)
+            if not self.check_movements(walls, ghost.direction):
+                can_move = False
+        elif ghost.direction in ["up", "down"] and is_aligned_y:
+            walls = self.check_walls(current_cx, current_cy)
+            if not self.check_movements(walls, ghost.direction):
+                can_move = False
+
+        if can_move:
+            dx, dy = self._direction_vectors[ghost.direction]
+            self.move_actor(ghost, dx * self.move_speed,
+                            dy * self.move_speed)
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])

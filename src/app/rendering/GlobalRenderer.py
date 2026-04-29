@@ -4,7 +4,7 @@ import time
 
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
-from src.models import UIMode
+from src.models import UIMode, Color
 from .GameRenderer import GameRenderer
 from .SpriteRenderer import SpriteRenderer
 from .gui import (
@@ -252,6 +252,9 @@ class GlobalRenderer:
     def _render_hud(self, force: bool) -> None:
         if not force and not self._hud_dirty:
             return
+        for rect in self._hud.get_hud_rects(self.win_width, self.win_height):
+            x, y, width, height = rect
+            self._fill_rect(x, y, width, height, Color.BLACK)
         self._hud.render(
             self.mlx,
             self.mlx_ptr,
@@ -261,13 +264,32 @@ class GlobalRenderer:
         )
         self._hud_dirty = False
 
+    def _fill_rect(
+        self,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        color: int
+    ) -> None:
+        if width <= 0 or height <= 0:
+            return
+        pixel_put = self.mlx.mlx_pixel_put
+        x_end = x + width
+        y_end = y + height
+        for py in range(y, y_end):
+            for px in range(x, x_end):
+                pixel_put(self.mlx_ptr, self.win_ptr, px, py, color)
+
     def _render_incremental(self) -> None:
         current_pacgum_cells = {
             (int(round(pacgum.x)), int(round(pacgum.y)))
             for pacgum in self.game_engine.pacgums
         }
         removed_cells = self._prev_pacgum_cells - current_pacgum_cells
-        self._hud.score += len(removed_cells)
+        if removed_cells:
+            self._hud.score += len(removed_cells)
+            self._hud_dirty = True
         added_cells = current_pacgum_cells - self._prev_pacgum_cells
 
         cells_to_redraw: set[tuple[int, int]] = set(removed_cells)

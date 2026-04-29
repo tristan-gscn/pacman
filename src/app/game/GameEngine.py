@@ -21,7 +21,7 @@ class GameEngine:
     def __init__(self, maze: list[list[int]], path_finder: FindPath) -> None:
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
-        self.global_flee = True
+        self.global_flee = False
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {

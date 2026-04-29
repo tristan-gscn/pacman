@@ -21,6 +21,7 @@ class GameEngine:
     def __init__(self, maze: list[list[int]], path_finder: FindPath) -> None:
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
+        self.global_flee = True
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {
@@ -72,7 +73,17 @@ class GameEngine:
         self.player = Player()
         self.pacgums: list[PacGum] = []
         self._attach_engine()
+        self.set_global_flee(self.global_flee)
         self._generate_pacgums()
+
+    def set_global_flee(self, enabled: bool) -> None:
+        self.global_flee = enabled
+        for npc in self.npcs.values():
+            if enabled:
+                npc.set_strategy(FleeStrategy())
+            else:
+                npc.set_strategy(npc.base_strategy)
+            npc.path = []
 
     def _attach_engine(self) -> None:
         self.player.set_game_engine(self)

@@ -12,10 +12,15 @@ class NPC(Actor):
     ):
         super().__init__()
         self.strategy = strategy
+        self.base_strategy = strategy
         self.sprites = sprites
         self.color = color
         self.path: list[tuple[int, int]] = []
         self.direction: str = "right"
+        self.set_strategy(strategy)
+
+    def set_strategy(self, strategy: NPCStrategy) -> None:
+        self.strategy = strategy
         self.strategy.path = self.path
 
         from .FleeStrategy import FleeStrategy

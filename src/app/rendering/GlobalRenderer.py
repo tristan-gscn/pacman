@@ -261,6 +261,7 @@ class GlobalRenderer:
             for pacgum in self.game_engine.pacgums
         }
         removed_cells = self._prev_pacgum_cells - current_pacgum_cells
+        self._hud.score += len(removed_cells)
         added_cells = current_pacgum_cells - self._prev_pacgum_cells
 
         cells_to_redraw: set[tuple[int, int]] = set(removed_cells)

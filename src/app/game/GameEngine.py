@@ -7,6 +7,7 @@ from src.app.game.npc import NPC, ChaseStrategy, AmbushStrategy, \
     FleeStrategy, ScatterStrategy
 from src.models import NPCSprites, Color
 from src.app.game.MazeUtils import MazeUtils
+from src.app.game.FindPath import FindPath
 
 npc_sprites = NPCSprites(fear="npc/fear.png",
                          mov_left="npc/mov_left.png",
@@ -17,7 +18,7 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 
 class GameEngine:
 
-    def __init__(self, maze: list[list[int]]) -> None:
+    def __init__(self, maze: list[list[int]], path_finder: FindPath) -> None:
         self.move_speed = 40 / 320
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
@@ -39,10 +40,11 @@ class GameEngine:
         }
         self._pressed_directions: list[str] = []
         self._active_direction: str = "left"
+        self.path_finder: FindPath = path_finder
         self.npcs: dict[str,
                         NPC] = {
                             "Blinky":
-                            NPC(strategy=ChaseStrategy(),
+                            NPC(strategy=FleeStrategy(),
                                 sprites=npc_sprites,
                                 color=Color.RED),
                             "Pinky":
@@ -50,7 +52,7 @@ class GameEngine:
                                 sprites=npc_sprites,
                                 color=Color.MAGENTA),
                             "Inky":
-                            NPC(strategy=FleeStrategy(),
+                            NPC(strategy=AmbushStrategy(),
                                 sprites=npc_sprites,
                                 color=Color.CYAN),
                             "Clyde":
@@ -156,10 +158,19 @@ class GameEngine:
         player_cell = (int(round(self.player.x)), int(round(self.player.y)))
         if self.pacgums:
             self.pacgums = [
-                pacgum
-                for pacgum in self.pacgums
+                pacgum for pacgum in self.pacgums
                 if (int(round(pacgum.x)), int(round(pacgum.y))) != player_cell
             ]
+
+    def update_ghosts(self) -> None:
+
+        if int(self.npcs["Blinky"].x) == self.npcs["Blinky"].x and int(
+                self.npcs["Blinky"].y) == self.npcs["Blinky"].y:
+            self.gosts_path()
+
+        dx, dy = self._direction_vectors[self.npcs["Blinky"].direction]
+        self.move_actor(self.npcs["Blinky"], dx * self.move_speed,
+                        dy * self.move_speed)
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])
@@ -174,3 +185,30 @@ class GameEngine:
         if direction == "down" and walls["S"]:
             return False
         return True
+
+    def gosts_path(self) -> None:
+        self.npcs["Blinky"].path = self.path_finder.a_star_algorithm(
+            (int(round(
+                self.npcs["Blinky"].y)), int(round(self.npcs["Blinky"].x))),
+            self.npcs["Blinky"].strategy.act(self._maze, self.player))
+        # print(self.npcs["Blinky"].path)
+        # print("x", int(round(self.npcs["Blinky"].x)))
+        # print("y", int(round(self.npcs["Blinky"].y)))
+        # print("strat", self.npcs["Blinky"].strategy.act(self._maze, self.player))
+        self.gosts_direction()
+
+    def gosts_direction(self) -> None:
+        dest_x: int
+        dest_y: int
+        if self.npcs["Blinky"].path and len(self.npcs["Blinky"].path) > 1:
+            dest_y, dest_x = self.npcs["Blinky"].path[1]
+            if dest_x > self.npcs["Blinky"].x:
+                self.npcs["Blinky"].direction = "right"
+            elif dest_x < self.npcs["Blinky"].x:
+                self.npcs["Blinky"].direction = "left"
+            elif dest_y < self.npcs["Blinky"].y:
+                self.npcs["Blinky"].direction = "up"
+            elif dest_y > self.npcs["Blinky"].y:
+                self.npcs["Blinky"].direction = "down"
+        else:
+            self.npcs["Blinky"].direction = self.npcs["Blinky"].direction

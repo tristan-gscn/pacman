@@ -14,3 +14,10 @@ class NPC(Actor):
         self.strategy = strategy
         self.sprites = sprites
         self.color = color
+        self.path: list[tuple[int, int]] = []
+        self.direction: str = "right"
+        self.strategy.path = self.path
+
+        from .FleeStrategy import FleeStrategy
+        if isinstance(self.strategy, FleeStrategy):
+            self.strategy.set_npc(self)

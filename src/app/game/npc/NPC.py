@@ -19,5 +19,6 @@ class NPC(Actor):
         self.strategy.path = self.path
 
         from .FleeStrategy import FleeStrategy
-        if isinstance(self.strategy, FleeStrategy):
+        from .ScatterStrategy import ScatterStrategy
+        if isinstance(self.strategy, (FleeStrategy, ScatterStrategy)):
             self.strategy.set_npc(self)

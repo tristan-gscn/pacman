@@ -20,6 +20,7 @@ class GameEngine:
 
     def __init__(self, maze: list[list[int]], path_finder: FindPath) -> None:
         self.move_speed = 40 / 320
+        self.ghost_speed_factor = 0.7
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {
@@ -44,7 +45,7 @@ class GameEngine:
         self.npcs: dict[str,
                         NPC] = {
                             "Blinky":
-                            NPC(strategy=FleeStrategy(),
+                            NPC(strategy=ChaseStrategy(),
                                 sprites=npc_sprites,
                                 color=Color.RED),
                             "Pinky":
@@ -60,14 +61,14 @@ class GameEngine:
                                 sprites=npc_sprites,
                                 color=Color.GOLD)
                         }
-        self.npcs["Blinky"].x = 5
-        self.npcs["Blinky"].y = 5
-        self.npcs["Pinky"].x = 2
-        self.npcs["Pinky"].y = 2
-        self.npcs["Inky"].x = 3
-        self.npcs["Inky"].y = 6
-        self.npcs["Clyde"].x = 4
-        self.npcs["Clyde"].y = 11
+        self.npcs["Blinky"].x = 14
+        self.npcs["Blinky"].y = 0
+        self.npcs["Pinky"].x = 14
+        self.npcs["Pinky"].y = 14
+        self.npcs["Inky"].x = 0
+        self.npcs["Inky"].y = 14
+        self.npcs["Clyde"].x = 10
+        self.npcs["Clyde"].y = 10
         self.player = Player()
         self.pacgums: list[PacGum] = []
         self._attach_engine()
@@ -163,36 +164,36 @@ class GameEngine:
             ]
 
     def update_ghosts(self) -> None:
-        ghost = self.npcs["Blinky"]
-        current_cx = round(ghost.x)
-        current_cy = round(ghost.y)
+        for ghost in self.npcs.values():
+            current_cx = round(ghost.x)
+            current_cy = round(ghost.y)
 
-        tolerance = 0.05
-        is_aligned_x = abs(ghost.x - current_cx) < tolerance
-        is_aligned_y = abs(ghost.y - current_cy) < tolerance
+            tolerance = 0.05
+            is_aligned_x = abs(ghost.x - current_cx) < tolerance
+            is_aligned_y = abs(ghost.y - current_cy) < tolerance
 
-        if is_aligned_x:
-            ghost.x = float(current_cx)
-        if is_aligned_y:
-            ghost.y = float(current_cy)
+            if is_aligned_x:
+                ghost.x = float(current_cx)
+            if is_aligned_y:
+                ghost.y = float(current_cy)
 
-        if is_aligned_x and is_aligned_y:
-            self.gosts_path()
+            if is_aligned_x and is_aligned_y:
+                self.gosts_path(ghost)
 
-        can_move = True
-        if ghost.direction in ["left", "right"] and is_aligned_x:
-            walls = self.check_walls(current_cx, current_cy)
-            if not self.check_movements(walls, ghost.direction):
-                can_move = False
-        elif ghost.direction in ["up", "down"] and is_aligned_y:
-            walls = self.check_walls(current_cx, current_cy)
-            if not self.check_movements(walls, ghost.direction):
-                can_move = False
+            can_move = True
+            if ghost.direction in ["left", "right"] and is_aligned_x:
+                walls = self.check_walls(current_cx, current_cy)
+                if not self.check_movements(walls, ghost.direction):
+                    can_move = False
+            elif ghost.direction in ["up", "down"] and is_aligned_y:
+                walls = self.check_walls(current_cx, current_cy)
+                if not self.check_movements(walls, ghost.direction):
+                    can_move = False
 
-        if can_move:
-            dx, dy = self._direction_vectors[ghost.direction]
-            self.move_actor(ghost, dx * self.move_speed,
-                            dy * self.move_speed)
+            if can_move:
+                dx, dy = self._direction_vectors[ghost.direction]
+                speed = self.move_speed * self.ghost_speed_factor
+                self.move_actor(ghost, dx * speed, dy * speed)
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])
@@ -208,29 +209,22 @@ class GameEngine:
             return False
         return True
 
-    def gosts_path(self) -> None:
-        self.npcs["Blinky"].path = self.path_finder.a_star_algorithm(
-            (int(round(
-                self.npcs["Blinky"].y)), int(round(self.npcs["Blinky"].x))),
-            self.npcs["Blinky"].strategy.act(self._maze, self.player))
-        # print(self.npcs["Blinky"].path)
-        # print("x", int(round(self.npcs["Blinky"].x)))
-        # print("y", int(round(self.npcs["Blinky"].y)))
-        # print("strat", self.npcs["Blinky"].strategy.act(self._maze, self.player))
-        self.gosts_direction()
+    def gosts_path(self, ghost: NPC) -> None:
+        ghost.path = self.path_finder.a_star_algorithm(
+            (int(round(ghost.y)), int(round(ghost.x))),
+            ghost.strategy.act(self._maze, self.player))
+        self.gosts_direction(ghost)
 
-    def gosts_direction(self) -> None:
+    def gosts_direction(self, ghost: NPC) -> None:
         dest_x: int
         dest_y: int
-        if self.npcs["Blinky"].path and len(self.npcs["Blinky"].path) > 1:
-            dest_y, dest_x = self.npcs["Blinky"].path[1]
-            if dest_x > self.npcs["Blinky"].x:
-                self.npcs["Blinky"].direction = "right"
-            elif dest_x < self.npcs["Blinky"].x:
-                self.npcs["Blinky"].direction = "left"
-            elif dest_y < self.npcs["Blinky"].y:
-                self.npcs["Blinky"].direction = "up"
-            elif dest_y > self.npcs["Blinky"].y:
-                self.npcs["Blinky"].direction = "down"
-        else:
-            self.npcs["Blinky"].direction = self.npcs["Blinky"].direction
+        if ghost.path and len(ghost.path) > 1:
+            dest_y, dest_x = ghost.path[1]
+            if dest_x > ghost.x:
+                ghost.direction = "right"
+            elif dest_x < ghost.x:
+                ghost.direction = "left"
+            elif dest_y < ghost.y:
+                ghost.direction = "up"
+            elif dest_y > ghost.y:
+                ghost.direction = "down"

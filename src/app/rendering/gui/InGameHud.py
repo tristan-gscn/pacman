@@ -6,11 +6,11 @@ from src.models import Color
 
 class InGameHud(BaseScreen):
     def __init__(self) -> None:
-        self.score = 42
+        self.score = 0
         self.level = 42
         self.time_remaining = "42:42"
         self.max_lives = 3
-        self.current_lives = 2
+        self.current_lives = 3
         self._maze_offset_x = 0
         self._maze_offset_y = 0
         self._maze_width = 0
@@ -88,7 +88,7 @@ class InGameHud(BaseScreen):
         top_y = max(maze_top - 30, 0)
         bottom_y = min(maze_bottom + 12, win_height - 30)
 
-        heart_scale = 2
+        heart_scale = 3
         heart_width = 8 * heart_scale
         heart_height = 7 * heart_scale
         heart_spacing = 6

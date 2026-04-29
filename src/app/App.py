@@ -7,6 +7,7 @@ from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
 from src.models import UIMode
+from src.app.game.FindPath import FindPath
 
 
 class App:
@@ -33,7 +34,8 @@ class App:
         try:
             mazegen = MazeGenerator()
             mazegen.generate()
-            self.game_engine = GameEngine(mazegen.maze)
+            path_finder: FindPath = FindPath(mazegen.maze)
+            self.game_engine = GameEngine(mazegen.maze, path_finder)
             self.renderer = GlobalRenderer(
                 mazegen.maze,
                 self.game_engine,
@@ -113,3 +115,4 @@ class App:
         if self.ui_mode != UIMode.IN_GAME:
             return
         self.game_engine.update()
+        self.game_engine.update_ghosts()

@@ -140,6 +140,12 @@ class GlobalRenderer:
                 npc.sprites.mov_right,
                 recolor=npc.color
             )
+        first_npc = next(iter(self.game_engine.npcs.values()), None)
+        self.npc_fear_frames = []
+        if first_npc is not None:
+            self.npc_fear_frames = self.sprite_renderer.load_sprite_frames(
+                first_npc.sprites.fear
+            )
 
         self.frame_index = 0
         self.last_frame_time = time.monotonic()
@@ -261,6 +267,7 @@ class GlobalRenderer:
             for pacgum in self.game_engine.pacgums
         }
         removed_cells = self._prev_pacgum_cells - current_pacgum_cells
+        self._hud.score += len(removed_cells)
         added_cells = current_pacgum_cells - self._prev_pacgum_cells
 
         cells_to_redraw: set[tuple[int, int]] = set(removed_cells)
@@ -281,10 +288,13 @@ class GlobalRenderer:
 
     def _render_sprites(self) -> None:
         for name, npc in self.game_engine.npcs.items():
+            frames = self.npc_frames.get(name, [])
+            if getattr(self.game_engine, "global_flee", False):
+                frames = self.npc_fear_frames
             self.sprite_renderer.render_sprite_frame(
                 npc.x,
                 npc.y,
-                self.npc_frames.get(name, []),
+                frames,
                 self.frame_index,
                 self.game_renderer.offset_x,
                 self.game_renderer.offset_y

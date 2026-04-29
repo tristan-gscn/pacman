@@ -72,21 +72,8 @@ class InGameHud(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
-        maze_left = self._maze_offset_x
-        maze_top = self._maze_offset_y
-        maze_width = self._maze_width
-        maze_height = self._maze_height
-        if maze_width <= 0 or maze_height <= 0:
-            maze_left = 0
-            maze_top = 0
-            maze_width = win_width
-            maze_height = win_height
-
-        maze_right = maze_left + maze_width
-        maze_bottom = maze_top + maze_height
-
-        top_y = max(maze_top - 30, 0)
-        bottom_y = min(maze_bottom + 12, win_height - 30)
+        layout = self._get_layout(win_width, win_height)
+        maze_left, maze_right, _, _, top_y, bottom_y = layout
 
         heart_scale = 3
         heart_width = 8 * heart_scale
@@ -144,6 +131,73 @@ class InGameHud(BaseScreen):
                 heart_scale,
                 filled
             )
+
+    def get_hud_rects(
+        self,
+        win_width: int,
+        win_height: int
+    ) -> list[tuple[int, int, int, int]]:
+        maze_left, maze_right, _, _, top_y, bottom_y = self._get_layout(
+            win_width,
+            win_height
+        )
+        rects: list[tuple[int, int, int, int]] = []
+
+        level_text = f"LEVEL {self.level}"
+        time_text = self.time_remaining
+        score_text = f"SCORE: {self.score}"
+
+        text_height = 18
+        text_width = 10
+
+        level_x = max(maze_left, 0)
+        time_x = max(maze_right - (len(time_text) * text_width), 0)
+        score_x = max(maze_left, 0)
+
+        rects.append(
+            (level_x, top_y, len(level_text) * text_width, text_height)
+        )
+        rects.append(
+            (time_x, top_y, len(time_text) * text_width, text_height)
+        )
+        rects.append(
+            (score_x, bottom_y, len(score_text) * text_width, text_height)
+        )
+
+        heart_scale = 3
+        heart_width = 8 * heart_scale
+        heart_height = 7 * heart_scale
+        heart_spacing = 6
+        total_width = (
+            self.max_lives * heart_width
+            + max(self.max_lives - 1, 0) * heart_spacing
+        )
+        hearts_x = max(maze_right - total_width, 0)
+        hearts_y = max(bottom_y - (heart_height - 16), 0)
+        rects.append((hearts_x, hearts_y, total_width, heart_height))
+        return [rect for rect in rects if rect[2] > 0 and rect[3] > 0]
+
+    def _get_layout(
+        self,
+        win_width: int,
+        win_height: int
+    ) -> tuple[int, int, int, int, int, int]:
+        maze_left = self._maze_offset_x
+        maze_top = self._maze_offset_y
+        maze_width = self._maze_width
+        maze_height = self._maze_height
+        if maze_width <= 0 or maze_height <= 0:
+            maze_left = 0
+            maze_top = 0
+            maze_width = win_width
+            maze_height = win_height
+
+        maze_right = maze_left + maze_width
+        maze_bottom = maze_top + maze_height
+
+        top_y = max(maze_top - 30, 0)
+        bottom_y = min(maze_bottom + 12, win_height - 30)
+        return (maze_left, maze_right, maze_top, maze_bottom, top_y, bottom_y)
 
     def _draw_heart(
         self,

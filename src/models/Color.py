@@ -2,6 +2,7 @@ from enum import IntEnum
 
 
 class Color(IntEnum):
+    BLACK = 0xFF000000
     WHITE = 0xFFFFFFFF
     RED = 0xFFFF0000
     GREEN = 0xFF00FF00
@@ -10,3 +11,4 @@ class Color(IntEnum):
     MAGENTA = 0xFFFF00FF
     YELLOW = 0xFFFFFF00
     GOLD = 0xFFFFD700
+    SALMON = 0xFFFA8072

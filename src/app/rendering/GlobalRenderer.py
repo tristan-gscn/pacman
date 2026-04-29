@@ -1,4 +1,5 @@
 from typing import Callable
+import math
 import time
 
 from mlx import Mlx  # type: ignore[import-untyped]
@@ -27,7 +28,7 @@ class GlobalRenderer:
     WINDOW_WIDTH: int = 1200
     WINDOW_HEIGHT: int = 800
     CELL_SIZE: int = 40
-    FRAME_DELAY_SECONDS: float = 0.1
+    FRAME_DELAY_SECONDS: float = 0.15
 
     def __init__(
             self,
@@ -91,6 +92,10 @@ class GlobalRenderer:
         self._update_callback = update_callback
         self._ui_mode_provider = ui_mode_provider
         self._last_ui_mode: UIMode | None = None
+        self._needs_full_redraw = True
+        self._hud_dirty = True
+        self._prev_actor_positions: dict[str, tuple[float, float]] = {}
+        self._prev_pacgum_cells: set[tuple[int, int]] = set()
         self._gui_screens = {
             UIMode.MAIN_MENU: MenuScreen(),
             UIMode.PAUSE_MENU: PauseMenuScreen(),
@@ -174,7 +179,11 @@ class GlobalRenderer:
             screen = self._gui_screens.get(ui_mode)
 
             if ui_mode != self._last_ui_mode:
-                self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                if ui_mode == UIMode.PAUSE_MENU:
+                    self._needs_full_redraw = True
+                    self._render_game_frame(update_state=False)
+                else:
+                    self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
                 if screen is not None:
                     screen.render(
                         self.mlx,
@@ -186,20 +195,91 @@ class GlobalRenderer:
                 self._last_ui_mode = ui_mode
             return
 
-        self._last_ui_mode = ui_mode
+        if ui_mode == UIMode.IN_GAME and ui_mode != self._last_ui_mode:
+            self._needs_full_redraw = True
 
-        self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+        self._last_ui_mode = ui_mode
+        self._render_game_frame(update_state=True)
+
+    def _render_game_frame(self, update_state: bool) -> None:
         now = time.monotonic()
         self.last_update_time = now
 
-        if self._update_callback is not None:
+        if update_state and self._update_callback is not None:
             self._update_callback()
 
-        self.game_renderer.render_maze(self.maze)
-        if now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
+        if self._needs_full_redraw:
+            self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+            self.game_renderer.render_maze(self.maze)
+            self._update_hud_layout()
+            self.game_renderer.render_pacgums(self.game_engine.pacgums)
+            self._render_sprites()
+            self._render_hud(force=True)
+            self._cache_frame_state()
+            self._needs_full_redraw = False
+            return
+
+        self._update_hud_layout()
+        self._render_incremental()
+        if update_state and now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
             self.frame_index += 1
             self.last_frame_time = now
 
+        self._render_sprites()
+        self._render_hud(force=False)
+        self._cache_frame_state()
+
+    def _update_hud_layout(self) -> None:
+        maze_width = 0
+        maze_height = 0
+        if self.maze:
+            maze_width = len(self.maze[0]) * self.CELL_SIZE
+            maze_height = len(self.maze) * self.CELL_SIZE
+        if self._hud.update_layout(
+            self.game_renderer.offset_x,
+            self.game_renderer.offset_y,
+            maze_width,
+            maze_height
+        ):
+            self._hud_dirty = True
+
+    def _render_hud(self, force: bool) -> None:
+        if not force and not self._hud_dirty:
+            return
+        self._hud.render(
+            self.mlx,
+            self.mlx_ptr,
+            self.win_ptr,
+            self.win_width,
+            self.win_height
+        )
+        self._hud_dirty = False
+
+    def _render_incremental(self) -> None:
+        current_pacgum_cells = {
+            (int(round(pacgum.x)), int(round(pacgum.y)))
+            for pacgum in self.game_engine.pacgums
+        }
+        removed_cells = self._prev_pacgum_cells - current_pacgum_cells
+        added_cells = current_pacgum_cells - self._prev_pacgum_cells
+
+        cells_to_redraw: set[tuple[int, int]] = set(removed_cells)
+        for prev_x, prev_y in self._prev_actor_positions.values():
+            for cell in self._covered_cells(prev_x, prev_y):
+                cells_to_redraw.add(cell)
+
+        for cell_x, cell_y in cells_to_redraw:
+            if not self._is_valid_cell(cell_x, cell_y):
+                continue
+            has_pacgum = (cell_x, cell_y) in current_pacgum_cells
+            self.game_renderer.redraw_cell(self.maze, cell_x, cell_y, has_pacgum)
+
+        for cell_x, cell_y in added_cells - cells_to_redraw:
+            if not self._is_valid_cell(cell_x, cell_y):
+                continue
+            self.game_renderer.draw_pacgum_at(cell_x, cell_y)
+
+    def _render_sprites(self) -> None:
         for name, npc in self.game_engine.npcs.items():
             self.sprite_renderer.render_sprite_frame(
                 npc.x,
@@ -221,13 +301,32 @@ class GlobalRenderer:
             self.game_renderer.offset_y
         )
 
-        self._hud.render(
-            self.mlx,
-            self.mlx_ptr,
-            self.win_ptr,
-            self.win_width,
-            self.win_height
-        )
+    def _cache_frame_state(self) -> None:
+        self._prev_actor_positions = {
+            "player": (self.game_engine.player.x, self.game_engine.player.y)
+        }
+        for name, npc in self.game_engine.npcs.items():
+            self._prev_actor_positions[name] = (npc.x, npc.y)
+        self._prev_pacgum_cells = {
+            (int(round(pacgum.x)), int(round(pacgum.y)))
+            for pacgum in self.game_engine.pacgums
+        }
+
+    def _covered_cells(self, grid_x: float, grid_y: float) -> set[tuple[int, int]]:
+        min_x = int(math.floor(grid_x))
+        min_y = int(math.floor(grid_y))
+        max_x = int(math.floor(grid_x + 0.9999))
+        max_y = int(math.floor(grid_y + 0.9999))
+        return {
+            (cell_x, cell_y)
+            for cell_x in range(min_x, max_x + 1)
+            for cell_y in range(min_y, max_y + 1)
+        }
+
+    def _is_valid_cell(self, cell_x: int, cell_y: int) -> bool:
+        if not self.maze:
+            return False
+        return 0 <= cell_y < len(self.maze) and 0 <= cell_x < len(self.maze[0])
 
     def set_player_direction(
             self,

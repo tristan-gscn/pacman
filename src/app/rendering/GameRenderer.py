@@ -1,5 +1,7 @@
 from functools import partial
 from mlx import Mlx  # type: ignore[import-untyped]
+from src.models import Color
+from src.app.game.PacGum import PacGum
 from .MazeRenderer import MazeRenderer
 
 
@@ -33,6 +35,7 @@ class GameRenderer:
         self.cell_size = cell_size
         self.offset_x = 0
         self.offset_y = 0
+        self._maze_renderer = MazeRenderer()
 
     def render_maze(self, maze: list[list[int]]) -> None:
         """Render the maze and compute screen offsets.
@@ -47,10 +50,67 @@ class GameRenderer:
         self.offset_y = max((self.win_height - maze_height) // 2, 0)
 
         pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
-        MazeRenderer().render_maze(
+        self._maze_renderer.render_maze(
             maze,
             pixel_put,
             offset_x=self.offset_x,
             offset_y=self.offset_y,
             cell_size=self.cell_size
         )
+
+    def render_pacgums(self, pacgums: list[PacGum]) -> None:
+        for pacgum in pacgums:
+            self.draw_pacgum_at(int(round(pacgum.x)), int(round(pacgum.y)))
+
+    def redraw_cell(
+        self,
+        maze: list[list[int]],
+        cell_x: int,
+        cell_y: int,
+        has_pacgum: bool
+    ) -> None:
+        self.draw_cell_background(maze, cell_x, cell_y)
+        if has_pacgum:
+            self.draw_pacgum_at(cell_x, cell_y)
+
+    def draw_cell_background(
+        self,
+        maze: list[list[int]],
+        cell_x: int,
+        cell_y: int
+    ) -> None:
+        cell = maze[cell_y][cell_x]
+        pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
+        cell_px = cell_x * self.cell_size + self.offset_x
+        cell_py = cell_y * self.cell_size + self.offset_y
+        for dy in range(self.cell_size):
+            for dx in range(self.cell_size):
+                pixel_put(cell_px + dx, cell_py + dy, Color.BLACK)
+        self._maze_renderer.render_cell(
+            cell_x,
+            cell_y,
+            cell,
+            pixel_put,
+            offset_x=self.offset_x,
+            offset_y=self.offset_y,
+            cell_size=self.cell_size
+        )
+
+    def draw_pacgum_at(self, cell_x: int, cell_y: int) -> None:
+        radius = max(self.cell_size // 12, 1)
+        pixel_put = self.mlx.mlx_pixel_put
+        half_cell = self.cell_size / 2.0
+        center_x = int(round(cell_x * self.cell_size + self.offset_x + half_cell))
+        center_y = int(round(cell_y * self.cell_size + self.offset_y + half_cell))
+
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if dx * dx + dy * dy > radius * radius:
+                    continue
+                pixel_put(
+                    self.mlx_ptr,
+                    self.win_ptr,
+                    center_x + dx,
+                    center_y + dy,
+                    Color.WHITE
+                )

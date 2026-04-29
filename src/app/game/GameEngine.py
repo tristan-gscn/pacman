@@ -1,5 +1,8 @@
+import random
+
 from src.app.game.Actor import Actor
 from src.app.game.Player import Player
+from src.app.game.PacGum import PacGum
 from src.app.game.npc import NPC, ChaseStrategy, AmbushStrategy, \
     FleeStrategy, ScatterStrategy
 from src.models import NPCSprites, Color
@@ -15,7 +18,8 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 class GameEngine:
 
     def __init__(self, maze: list[list[int]]) -> None:
-        self.move_speed = 0.25
+        self.move_speed = 40 / 320
+        self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {
             65361: "left",
@@ -63,12 +67,31 @@ class GameEngine:
         self.npcs["Clyde"].x = 4
         self.npcs["Clyde"].y = 11
         self.player = Player()
+        self.pacgums: list[PacGum] = []
         self._attach_engine()
+        self._generate_pacgums()
 
     def _attach_engine(self) -> None:
         self.player.set_game_engine(self)
         for npc in self.npcs.values():
             npc.set_game_engine(self)
+
+    def _generate_pacgums(self) -> None:
+        self.pacgums.clear()
+        occupied: set[tuple[int, int]] = set()
+        occupied.add((int(round(self.player.x)), int(round(self.player.y))))
+        for npc in self.npcs.values():
+            occupied.add((int(round(npc.x)), int(round(npc.y))))
+
+        for y, row in enumerate(self._maze):
+            for x, cell in enumerate(row):
+                if (x, y) in occupied:
+                    continue
+                if cell == 15:
+                    continue
+                if random.random() > self.pacgum_spawn_chance:
+                    continue
+                self.pacgums.append(PacGum(x=float(x), y=float(y)))
 
     def set_player_direction(self, direction: str) -> None:
         self.player.direction = direction
@@ -129,6 +152,14 @@ class GameEngine:
             dx, dy = self._direction_vectors[self._active_direction]
             self.move_actor(self.player, dx * self.move_speed,
                             dy * self.move_speed)
+
+        player_cell = (int(round(self.player.x)), int(round(self.player.y)))
+        if self.pacgums:
+            self.pacgums = [
+                pacgum
+                for pacgum in self.pacgums
+                if (int(round(pacgum.x)), int(round(pacgum.y))) != player_cell
+            ]
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])

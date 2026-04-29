@@ -41,6 +41,26 @@ class MazeRenderer:
                     cell_size=cell_size
                 )
 
+    def render_cell(
+        self,
+        x: int,
+        y: int,
+        cell: int,
+        pixel_put: Callable[[int, int, int], None],
+        offset_x: int = 0,
+        offset_y: int = 0,
+        cell_size: int = 40
+    ) -> None:
+        self._render_cell(
+            x,
+            y,
+            cell,
+            pixel_put,
+            offset_x=offset_x,
+            offset_y=offset_y,
+            cell_size=cell_size
+        )
+
     def _render_cell(
         self,
         x: int,

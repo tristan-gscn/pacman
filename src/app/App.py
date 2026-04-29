@@ -61,7 +61,16 @@ class App:
             if keycode == self._KEY_ESCAPE:
                 self.ui_mode = UIMode.MAIN_MENU
             return
+        if self.ui_mode == UIMode.PAUSE_MENU:
+            if keycode == self._KEY_ENTER:
+                self.ui_mode = UIMode.IN_GAME
+            elif keycode == self._KEY_ESCAPE:
+                self.ui_mode = UIMode.MAIN_MENU
+            return
         if self.ui_mode != UIMode.IN_GAME:
+            return
+        if keycode == self._KEY_ESCAPE:
+            self.ui_mode = UIMode.PAUSE_MENU
             return
         if self.game_engine is not None:
             self.game_engine.on_key_press(keycode)
@@ -91,7 +100,8 @@ class App:
             keycode (int): MLX key code for the released key.
         """
         if self.ui_mode != UIMode.IN_GAME:
-            return
+            if self.ui_mode != UIMode.PAUSE_MENU:
+                return
         if self.game_engine is not None:
             self.game_engine.on_key_release(keycode)
 

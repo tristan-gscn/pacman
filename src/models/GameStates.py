@@ -7,3 +7,6 @@ class GameStates(BaseModel):
     time_remaining: int = Field(90, ge=1)
     max_lives: int = Field(3, ge=1)
     current_lives: int = Field(3, ge=0)
+    points_per_pacgum: int
+    points_per_super_pacgum: int
+    points_per_ghost: int

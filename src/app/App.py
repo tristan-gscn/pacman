@@ -6,6 +6,7 @@ from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
 from src.models import UIMode
+from src.models.Configuration import Configuration
 from src.models.GameStates import GameStates
 from src.app.game.FindPath import FindPath
 
@@ -21,25 +22,30 @@ class App:
 
     def __init__(self, config_path: str = "config.json") -> None:
         self.config_path = config_path
-        self.game_states: GameStates = GameStates()
+        try:
+            self.config: Configuration = ConfigParser().parse(self.config_path)
+        except Exception as e:
+            print(f"{type(e).__name__} error occured while parsing: {e}")
+        self.game_states: GameStates = GameStates(
+            time_remaining=self.config.level_max_time,
+            max_lives=self.config.lives,
+            points_per_ghost=self.config.points_per_ghost,
+            points_per_pacgum=self.config.points_per_pacgum,
+            points_per_super_pacgum=self.config.points_per_super_pacgum
+            )
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
         self.ui_mode = UIMode.MAIN_MENU
+        self.mazegen = MazeGenerator()
 
     def run(self) -> None:
         try:
-            print(ConfigParser().parse(self.config_path))
-        except Exception as e:
-            print(f"{type(e).__name__} error occured while parsing: {e}")
-
-        try:
-            mazegen = MazeGenerator()
-            mazegen.generate()
-            path_finder: FindPath = FindPath(mazegen.maze)
-            self.game_engine = GameEngine(mazegen.maze, path_finder,
+            self.mazegen.generate()
+            path_finder: FindPath = FindPath(self.mazegen.maze)
+            self.game_engine = GameEngine(self.mazegen.maze, path_finder,
                                           self.game_states)
             self.renderer = GlobalRenderer(
-                mazegen.maze,
+                self.mazegen.maze,
                 self.game_engine,
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
@@ -117,6 +123,12 @@ class App:
     def _on_update(self) -> None:
         """Move the player continuously based on current input state.
         """
+        if len(self.game_engine.pacgums) <= 0:
+            self.mazegen.generate()
+            self.game_engine.rebirth()
+            self.game_engine._generate_pacgums()
+            self.game_states.time_remaining = self.config.level_max_time  # TODO need to update with config file
+            self.game_states.level += 1
         if self.game_engine is None:
             return
         if self.ui_mode != UIMode.IN_GAME:

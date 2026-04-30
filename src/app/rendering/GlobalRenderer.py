@@ -40,8 +40,7 @@ class GlobalRenderer:
                  key_release_callback: Callable[[int], None] | None = None,
                  update_callback: Callable[[float], None] | None = None,
                  ui_mode_provider: Callable[[], UIMode] | None = None,
-                 ui_mode_setter: Callable[[], UIMode] | None = None
-                 ) -> None:
+                 ui_mode_setter: Callable[[], UIMode] | None = None) -> None:
         """Create the window and start the MLX render loop.
 
         Args:
@@ -82,7 +81,9 @@ class GlobalRenderer:
 
         self.beginning_timestamp: float
         self.maze = maze
+        self.old_maze = maze
         self.game_engine = game_engine
+        self._level_time = self.game_engine.game_states.time_remaining
         self.win_width = win_width
         self.win_height = win_height
         self._key_press_callback = key_press_callback
@@ -195,7 +196,15 @@ class GlobalRenderer:
 
     def _render_game_frame(self, update_state: bool) -> None:
         now = time.monotonic()
-        self.game_engine.game_states.time_remaining = 90 - int(
+
+        if self.maze != self.old_maze:
+            print("HELLO")
+            self._needs_full_redraw = True
+            self.old_maze = self.maze
+            self.beginning_timestamp = time.monotonic()
+            print(self.beginning_timestamp)
+
+        self.game_engine.game_states.time_remaining = self._level_time - int(
             now - self.beginning_timestamp
         )  # TODO: Use level max time and not 90 harcoded
         self.last_update_time = now
@@ -216,11 +225,14 @@ class GlobalRenderer:
 
         self._update_hud_layout()
         self._render_incremental()
-        if update_state and now - self.last_frame_time >= self.FRAME_DELAY_SECONDS:
-            if self.game_engine.player.direction == "death" and not self.is_player_dead:
+        if update_state and now - self.last_frame_time >=\
+           self.FRAME_DELAY_SECONDS:
+            if self.game_engine.player.direction == "death" and\
+               not self.is_player_dead:
                 self.frame_index = 0
                 self.is_player_dead = True
-            if self.game_engine.player.direction == "death" and self.frame_index % 6 == 5:
+            if self.game_engine.player.direction == "death" and\
+               self.frame_index % 6 == 5:
                 time.sleep(0.8)
                 self.frame_index = 0
                 self.is_player_dead = False

@@ -1,14 +1,14 @@
 
 {
-	"highscore_filename": "machin.json",
-	"width": 23,
-	"height": 43,
+	"highscore_filename": "score.json",
+	"width": 16,
+	"height": 16,
 	"lives": 3,
-	"pacgum": 6,
+	"pacgum": 1.0,
 	"points_per_pacgum": 5,
 	"points_per_super_pacgum": 4,
 	"points_per_ghost": 5,
 	"seed": 56,
-	"level_max_time": 90
+	"level_max_time": 150
 
 }

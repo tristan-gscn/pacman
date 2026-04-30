@@ -39,7 +39,9 @@ class GlobalRenderer:
                  key_press_callback: Callable[[int], None] | None = None,
                  key_release_callback: Callable[[int], None] | None = None,
                  update_callback: Callable[[float], None] | None = None,
-                 ui_mode_provider: Callable[[], UIMode] | None = None) -> None:
+                 ui_mode_provider: Callable[[], UIMode] | None = None,
+                 ui_mode_setter: Callable[[], UIMode] | None = None
+                 ) -> None:
         """Create the window and start the MLX render loop.
 
         Args:
@@ -87,6 +89,7 @@ class GlobalRenderer:
         self._key_release_callback = key_release_callback
         self._update_callback = update_callback
         self._ui_mode_provider = ui_mode_provider
+        self._ui_mode_setter = ui_mode_setter
         self._last_ui_mode: UIMode | None = None
         self._needs_full_redraw = True
         self._hud_dirty = True
@@ -240,6 +243,9 @@ class GlobalRenderer:
                                    self.game_renderer.offset_y, maze_width,
                                    maze_height):
             self._hud_dirty = True
+        if self._hud.game_states.time_remaining <= 0 or\
+           self._hud.game_states.current_lives <= 0:
+            self._ui_mode_setter(UIMode.GAME_OVER)
 
     def _render_hud(self, force: bool) -> None:
         if not force and not self._hud_dirty:

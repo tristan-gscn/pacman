@@ -238,12 +238,18 @@ class GameEngine:
                 ghost.direction = "down"
 
     def collisions(self) -> None:
-        px: int = self.player.x
-        py: int = self.player.y
-        for ghost in self.npcs.values():
-            if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 0.64:
-                self.player.direction = "death"
-                self.game_states.current_lives -= 1
+        # TODO: Multiple deaths must be fixed
+        import time
+        print(time.monotonic(), self.player.direction)
+        if self.player.direction != "death":
+            px: int = self.player.x
+            py: int = self.player.y
+            for ghost in self.npcs.values():
+                if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 0.64:
+                    self.player.direction = "death"
+                    print(time.monotonic(), "DEAD")
+                    self.game_states.current_lives -= 1
+                    return
 
     def eating_pacgum(self) -> None:
         current_pacgum_cells = [

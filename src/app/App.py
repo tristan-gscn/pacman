@@ -44,12 +44,17 @@ class App:
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
                 update_callback=self._on_update,
-                ui_mode_provider=self.get_ui_mode)
+                ui_mode_provider=self.get_ui_mode,
+                ui_mode_setter=self.set_ui_mode,
+                )
         except RuntimeError as e:
             print(f"Renderer initialization skipped: {e}")
 
     def get_ui_mode(self) -> UIMode:
         return self.ui_mode
+
+    def set_ui_mode(self, ui_mode: UIMode) -> None:
+        self.ui_mode = ui_mode
 
     def _on_key_press(self, keycode: int) -> None:
         """Handle key press events to update movement direction.

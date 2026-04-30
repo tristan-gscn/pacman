@@ -128,7 +128,8 @@ class GameEngine:
         if self._active_direction == direction:
             if self._pressed_directions:
                 self._active_direction = self._pressed_directions[-1]
-            self.set_player_direction(self._active_direction)
+            if self.player.direction != "death":
+                self.set_player_direction(self._active_direction)
 
     def update(self) -> None:
         if self._active_direction in ["left", "right"]:

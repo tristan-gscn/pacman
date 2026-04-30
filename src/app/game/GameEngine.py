@@ -6,6 +6,7 @@ from src.app.game.PacGum import PacGum
 from src.app.game.npc import NPC, ChaseStrategy, AmbushStrategy, \
     FleeStrategy, ScatterStrategy
 from src.models import NPCSprites, Color
+from src.models.GameStates import GameStates
 from src.app.game.MazeUtils import MazeUtils
 from src.app.game.FindPath import FindPath
 
@@ -18,10 +19,12 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 
 class GameEngine:
 
-    def __init__(self, maze: list[list[int]], path_finder: FindPath) -> None:
+    def __init__(self, maze: list[list[int]], path_finder: FindPath,
+                 game_states: GameStates) -> None:
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
         self.global_flee = False
+        self.game_states: GameStates = game_states
         self.pacgum_spawn_chance = 1.0
         self._maze: list[list[int]] = maze
         self._key_to_direction: dict[int, str] = {
@@ -39,38 +42,30 @@ class GameEngine:
             "right": (1.0, 0.0),
             "up": (0.0, -1.0),
             "down": (0.0, 1.0),
+            "death": (0.0, 0.0)
         }
         self._pressed_directions: list[str] = []
         self._active_direction: str = "left"
         self.path_finder: FindPath = path_finder
-        self.npcs: dict[str,
-                        NPC] = {
-                            "Blinky":
-                            NPC(strategy=ChaseStrategy(),
-                                sprites=npc_sprites,
-                                color=Color.RED),
-                            "Pinky":
-                            NPC(strategy=AmbushStrategy(),
-                                sprites=npc_sprites,
-                                color=Color.MAGENTA),
-                            "Inky":
-                            NPC(strategy=AmbushStrategy(),
-                                sprites=npc_sprites,
-                                color=Color.CYAN),
-                            "Clyde":
-                            NPC(strategy=ScatterStrategy(),
-                                sprites=npc_sprites,
-                                color=Color.GOLD)
-                        }
-        self.npcs["Blinky"].x = 14
-        self.npcs["Blinky"].y = 0
-        self.npcs["Pinky"].x = 14
-        self.npcs["Pinky"].y = 14
-        self.npcs["Inky"].x = 0
-        self.npcs["Inky"].y = 14
-        self.npcs["Clyde"].x = 10
-        self.npcs["Clyde"].y = 10
+        self.npcs: dict[str, NPC] = {
+            "Blinky":
+            NPC(strategy=ChaseStrategy(), sprites=npc_sprites,
+                color=Color.RED),
+            "Pinky":
+            NPC(strategy=AmbushStrategy(),
+                sprites=npc_sprites,
+                color=Color.MAGENTA),
+            "Inky":
+            NPC(strategy=AmbushStrategy(),
+                sprites=npc_sprites,
+                color=Color.CYAN),
+            "Clyde":
+            NPC(strategy=ScatterStrategy(),
+                sprites=npc_sprites,
+                color=Color.GOLD)
+        }
         self.player = Player()
+        self.rebirth()
         self.pacgums: list[PacGum] = []
         self._attach_engine()
         self.set_global_flee(self.global_flee)
@@ -167,6 +162,7 @@ class GameEngine:
             self.move_actor(self.player, dx * self.move_speed,
                             dy * self.move_speed)
 
+        self.eating_pacgum()
         player_cell = (int(round(self.player.x)), int(round(self.player.y)))
         if self.pacgums:
             self.pacgums = [
@@ -205,6 +201,7 @@ class GameEngine:
                 dx, dy = self._direction_vectors[ghost.direction]
                 speed = self.move_speed * self.ghost_speed_factor
                 self.move_actor(ghost, dx * speed, dy * speed)
+        self.collisions()
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
         return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])
@@ -239,3 +236,33 @@ class GameEngine:
                 ghost.direction = "up"
             elif dest_y > ghost.y:
                 ghost.direction = "down"
+
+    def collisions(self) -> None:
+        px: int = self.player.x
+        py: int = self.player.y
+        for ghost in self.npcs.values():
+            if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 0.64:
+                self.player.direction = "death"
+                self.game_states.current_lives -= 1
+
+    def eating_pacgum(self) -> None:
+        current_pacgum_cells = [
+            (pacgum.x, pacgum.y)
+            for pacgum in self.pacgums
+            if pacgum.x == self.player.x and pacgum.y == self.player.y
+        ]
+        self.game_states.score += len(current_pacgum_cells)
+
+    def rebirth(self) -> None:
+        self.player.direction = "right"
+        self.player.x = len(self._maze[0]) // 2 - (len(self._maze[0]) % 2 == 0)
+        self.player.y = len(self._maze) // 2 - (len(self._maze) % 2 == 0)
+        self.npcs["Blinky"].x = len(self._maze[0]) - 1
+        self.npcs["Blinky"].y = 0
+        self.npcs["Pinky"].x = 0
+        self.npcs["Pinky"].y = 0
+        self.npcs["Inky"].x = 0
+        self.npcs["Inky"].y = len(self._maze) - 1
+        self.npcs["Clyde"].x = len(self._maze[0]) - 1
+        self.npcs["Clyde"].y = len(self._maze) - 1
+

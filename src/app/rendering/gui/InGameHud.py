@@ -2,19 +2,16 @@ from mlx import Mlx  # type: ignore[import-untyped]
 
 from src.app.rendering.gui import BaseScreen
 from src.models import Color
+from src.models.GameStates import GameStates
 
 
 class InGameHud(BaseScreen):
-    def __init__(self) -> None:
-        self.score = 0
-        self.level = 42
-        self.time_remaining = "42:42"
-        self.max_lives = 3
-        self.current_lives = 3
+    def __init__(self, game_states: GameStates) -> None:
         self._maze_offset_x = 0
         self._maze_offset_y = 0
         self._maze_width = 0
         self._maze_height = 0
+        self.game_states: GameStates = game_states
 
     def update_layout(
         self,
@@ -41,28 +38,28 @@ class InGameHud(BaseScreen):
         self._maze_height = next_height
         return changed
 
-    def set_state(
-        self,
-        score: int,
-        level: int,
-        time_remaining: str,
-        max_lives: int,
-        current_lives: int
-    ) -> bool:
-        changed = (
-            score != self.score
-            or level != self.level
-            or time_remaining != self.time_remaining
-            or max_lives != self.max_lives
-            or current_lives != self.current_lives
-        )
+    # def set_state(
+    #     self,
+    #     score: int,
+    #     level: int,
+    #     time_remaining: str,
+    #     max_lives: int,
+    #     current_lives: int
+    # ) -> bool:
+    #     changed = (
+    #         score != self.score
+    #         or level != self.level
+    #         or time_remaining != self.time_remaining
+    #         or max_lives != self.max_lives
+    #         or current_lives != self.current_lives
+    #     )
 
-        self.score = score
-        self.level = level
-        self.time_remaining = time_remaining
-        self.max_lives = max_lives
-        self.current_lives = current_lives
-        return changed
+    #     self.score = score
+    #     self.level = level
+    #     self.time_remaining = time_remaining
+    #     self.max_lives = max_lives
+    #     self.current_lives = current_lives
+    #     return changed
 
     def render(
         self,
@@ -80,15 +77,16 @@ class InGameHud(BaseScreen):
         heart_height = 7 * heart_scale
         heart_spacing = 6
         total_width = (
-            self.max_lives * heart_width
-            + max(self.max_lives - 1, 0) * heart_spacing
+            self.game_states.max_lives * heart_width
+            + max(self.game_states.max_lives - 1, 0) * heart_spacing
         )
         hearts_x = max(maze_right - total_width, 0)
         hearts_y = max(bottom_y - (heart_height - 16), 0)
 
-        level_text = f"LEVEL {self.level}"
-        time_text = self.time_remaining
-        score_text = f"SCORE: {self.score}"
+        level_text = f"LEVEL {self.game_states.level}"
+        time_text = f"{self.game_states.time_remaining // 60}:" \
+                    f"{self.game_states.time_remaining % 60}"
+        score_text = f"SCORE: {self.game_states.score}"
 
         level_x = max(maze_left, 0)
         time_x = max(maze_right - (len(time_text) * 10), 0)
@@ -119,8 +117,8 @@ class InGameHud(BaseScreen):
             score_text
         )
 
-        for idx in range(self.max_lives):
-            filled = idx < self.current_lives
+        for idx in range(self.game_states.max_lives):
+            filled = idx < self.game_states.current_lives
             heart_x = hearts_x + idx * (heart_width + heart_spacing)
             self._draw_heart(
                 mlx,
@@ -143,9 +141,10 @@ class InGameHud(BaseScreen):
         )
         rects: list[tuple[int, int, int, int]] = []
 
-        level_text = f"LEVEL {self.level}"
-        time_text = self.time_remaining
-        score_text = f"SCORE: {self.score}"
+        level_text = f"LEVEL {self.game_states.level}"
+        time_text = f"{self.game_states.time_remaining // 60}:" \
+                    f"{self.game_states.time_remaining % 60}"
+        score_text = f"SCORE: {self.game_states.score}"
 
         text_height = 18
         text_width = 10
@@ -169,8 +168,8 @@ class InGameHud(BaseScreen):
         heart_height = 7 * heart_scale
         heart_spacing = 6
         total_width = (
-            self.max_lives * heart_width
-            + max(self.max_lives - 1, 0) * heart_spacing
+            self.game_states.max_lives * heart_width
+            + max(self.game_states.max_lives - 1, 0) * heart_spacing
         )
         hearts_x = max(maze_right - total_width, 0)
         hearts_y = max(bottom_y - (heart_height - 16), 0)

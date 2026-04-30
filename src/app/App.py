@@ -1,12 +1,12 @@
 import os
 
 from mazegenerator.mazegenerator import (  # type: ignore[import-untyped]
-    MazeGenerator,
-)
+    MazeGenerator, )
 from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
 from src.models import UIMode
+from src.models.GameStates import GameStates
 from src.app.game.FindPath import FindPath
 
 
@@ -21,6 +21,7 @@ class App:
 
     def __init__(self, config_path: str = "config.json") -> None:
         self.config_path = config_path
+        self.game_states: GameStates = GameStates()
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
         self.ui_mode = UIMode.MAIN_MENU
@@ -35,15 +36,15 @@ class App:
             mazegen = MazeGenerator()
             mazegen.generate()
             path_finder: FindPath = FindPath(mazegen.maze)
-            self.game_engine = GameEngine(mazegen.maze, path_finder)
+            self.game_engine = GameEngine(mazegen.maze, path_finder,
+                                          self.game_states)
             self.renderer = GlobalRenderer(
                 mazegen.maze,
                 self.game_engine,
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
                 update_callback=self._on_update,
-                ui_mode_provider=self.get_ui_mode
-            )
+                ui_mode_provider=self.get_ui_mode)
         except RuntimeError as e:
             print(f"Renderer initialization skipped: {e}")
 
@@ -74,7 +75,8 @@ class App:
         if keycode == self._KEY_ESCAPE:
             self.ui_mode = UIMode.PAUSE_MENU
             return
-        if self.game_engine is not None:
+        if self.game_engine is not None and \
+           self.game_engine.player.direction != "death":
             self.game_engine.on_key_press(keycode)
 
     def _handle_main_menu_key(self, keycode: int) -> None:
@@ -114,15 +116,7 @@ class App:
             return
         if self.ui_mode != UIMode.IN_GAME:
             return
-        self.game_engine.update()
-        self.game_engine.update_ghosts()
-        self.collisions()
-
-    def collisions(self) -> None:
-        px: int = self.game_engine.player.x
-        py: int = self.game_engine.player.y
-        for ghost in self.game_engine.npcs.values():
-            if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 30:
-                self.renderer._hud.current_lives -= 1
-
+        if self.game_engine.player.direction != "death":
+            self.game_engine.update()
+            self.game_engine.update_ghosts()
 

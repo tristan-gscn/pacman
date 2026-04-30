@@ -247,10 +247,11 @@ class GameEngine:
 
     def eating_pacgum(self) -> None:
         current_pacgum_cells = [
-            (pacgum.x, pacgum.y)
-            for pacgum in self.pacgums
-            if pacgum.x == self.player.x and pacgum.y == self.player.y
+            (pacgum.x, pacgum.y) for pacgum in self.pacgums
+            if int(round(pacgum.x)) == int(round(self.player.x))
+            and int(round(pacgum.y)) == int(round(self.player.y))
         ]
+
         self.game_states.score += len(current_pacgum_cells)
 
     def rebirth(self) -> None:
@@ -265,4 +266,3 @@ class GameEngine:
         self.npcs["Inky"].y = len(self._maze) - 1
         self.npcs["Clyde"].x = len(self._maze[0]) - 1
         self.npcs["Clyde"].y = len(self._maze) - 1
-

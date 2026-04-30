@@ -84,8 +84,10 @@ class InGameHud(BaseScreen):
         hearts_y = max(bottom_y - (heart_height - 16), 0)
 
         level_text = f"LEVEL {self.game_states.level}"
-        time_text = f"{self.game_states.time_remaining // 60}:" \
-                    f"{self.game_states.time_remaining % 60}"
+        time_text = \
+            f"{self.game_states.time_remaining // 60}:" \
+            f"{"0" if self.game_states.time_remaining % 60 < 10 else ""}" \
+            f"{self.game_states.time_remaining % 60}"
         score_text = f"SCORE: {self.game_states.score}"
 
         level_x = max(maze_left, 0)
@@ -142,8 +144,10 @@ class InGameHud(BaseScreen):
         rects: list[tuple[int, int, int, int]] = []
 
         level_text = f"LEVEL {self.game_states.level}"
-        time_text = f"{self.game_states.time_remaining // 60}:" \
-                    f"{self.game_states.time_remaining % 60}"
+        time_text = \
+            f"{self.game_states.time_remaining // 60}: " \
+            f"{"0" if self.game_states.time_remaining % 60 < 10 else ""}" \
+            f"{self.game_states.time_remaining % 60}"
         score_text = f"SCORE: {self.game_states.score}"
 
         text_height = 18

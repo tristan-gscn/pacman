@@ -78,6 +78,7 @@ class GlobalRenderer:
 
         self.mlx.mlx_do_key_autorepeatoff(self.mlx_ptr)
 
+        self.beginning_timestamp: float
         self.maze = maze
         self.game_engine = game_engine
         self.win_width = win_width
@@ -182,6 +183,8 @@ class GlobalRenderer:
             return
 
         if ui_mode == UIMode.IN_GAME and ui_mode != self._last_ui_mode:
+            if self._last_ui_mode == UIMode.MAIN_MENU:
+                self.beginning_timestamp = time.monotonic()
             self._needs_full_redraw = True
 
         self._last_ui_mode = ui_mode
@@ -189,6 +192,9 @@ class GlobalRenderer:
 
     def _render_game_frame(self, update_state: bool) -> None:
         now = time.monotonic()
+        self.game_engine.game_states.time_remaining = 90 - int(
+            now - self.beginning_timestamp
+        )  # TODO: Use level max time and not 90 harcoded
         self.last_update_time = now
 
         if update_state and self._update_callback is not None:
@@ -221,7 +227,7 @@ class GlobalRenderer:
             self.last_frame_time = now
 
         self._render_sprites()
-        self._render_hud(force=False)
+        self._render_hud(force=(int(now * 10 % 10) == 0))
         self._cache_frame_state()
 
     def _update_hud_layout(self) -> None:

@@ -1,4 +1,5 @@
 import os
+import json
 
 from mazegenerator.mazegenerator import (  # type: ignore[import-untyped]
     MazeGenerator, )
@@ -19,6 +20,7 @@ class App:
     _KEY_SHIFT_LEFT = 65505
     _KEY_SHIFT_RIGHT = 65506
     _KEY_ESCAPE = 65307
+    _KEY_BACKSPACE = 65288
 
     def __init__(self, config_path: str = "config.json") -> None:
         self.config_path = config_path
@@ -33,12 +35,13 @@ class App:
             current_lives=self.config.lives,
             points_per_ghost=self.config.points_per_ghost,
             points_per_pacgum=self.config.points_per_pacgum,
-            points_per_super_pacgum=self.config.points_per_super_pacgum
-            )
+            points_per_super_pacgum=self.config.points_per_super_pacgum)
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
+        self.current_input: str = ""
         self.ui_mode = UIMode.MAIN_MENU
-        self.mazegen = MazeGenerator(size=(self.config.width, self.config.height))
+        self.mazegen = MazeGenerator(size=(self.config.width,
+                                           self.config.height))
 
     def run(self) -> None:
         try:
@@ -49,12 +52,14 @@ class App:
             self.renderer = GlobalRenderer(
                 self.mazegen,
                 self.game_engine,
+                self.current_input,
+                self.config.highscore_filename,
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
                 update_callback=self._on_update,
                 ui_mode_provider=self.get_ui_mode,
                 ui_mode_setter=self.set_ui_mode,
-                )
+            )
         except RuntimeError as e:
             print(f"Renderer initialization skipped: {e}")
 
@@ -72,6 +77,9 @@ class App:
         """
         if self.ui_mode == UIMode.MAIN_MENU:
             self._handle_main_menu_key(keycode)
+            return
+        if self.ui_mode in (UIMode.GAME_OVER, UIMode.VICTORY):
+            self._handle_lose_victory_key(keycode)
             return
         if self.ui_mode in (UIMode.HIGHSCORES, UIMode.INSTRUCTIONS):
             if keycode == self._KEY_ESCAPE:
@@ -94,6 +102,11 @@ class App:
 
     def _handle_main_menu_key(self, keycode: int) -> None:
         if keycode == self._KEY_ENTER:
+            self.current_input = ""
+            self.game_states.score = 0
+            self.game_states.level = 1
+            self.game_states.time_remaining = self.config.level_max_time
+            self.game_states.current_lives = self.config.lives
             self.ui_mode = UIMode.IN_GAME
             return
         if keycode == self._KEY_SPACE:
@@ -104,6 +117,39 @@ class App:
             return
         if keycode == self._KEY_ESCAPE:
             self._exit_app()
+
+    def _handle_lose_victory_key(self, keycode: int) -> None:
+        if keycode == self._KEY_ENTER:
+            if "/" in self.config.highscore_filename:
+                index: int = self.config.highscore_filename.rfind("/") + 1
+                os.makedirs(self.config.highscore_filename[:index],
+                            exist_ok=True)
+            try:
+                scores_dict: dict[str, int] = {}
+
+                if os.path.exists(self.config.highscore_filename):
+                    with open(self.config.highscore_filename, "r") as f:
+                        scores_dict: dict[str, int] = json.load(f)
+                        for name, score in scores_dict.items():
+                            if not isinstance(name, str) or not isinstance(
+                                    score, int):
+                                raise ValueError(
+                                    "Don't touch the saves datas please!")
+                            scores_dict[name] = score
+
+                scores_dict[self.current_input] = self.game_states.score
+                sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
+                with open(self.config.highscore_filename, "w") as f:
+                    f.write(json.dumps(scores_dict, indent=2))
+            except Exception as e:
+                print(e)  # TODO Improving the message displayed
+            self.ui_mode = UIMode.MAIN_MENU
+            return
+        if keycode == self._KEY_BACKSPACE:
+            self.current_input = self.current_input[:-1]
+            return
+        if 32 <= keycode <= 126 and len(self.current_input) < 10:
+            self.current_input += chr(keycode)
 
     def _exit_app(self) -> None:
         if self.renderer is not None:
@@ -127,7 +173,8 @@ class App:
         """
         if self.game_engine is None:
             return
-        if len(self.game_engine.pacgums) <= 0 and len(self.game_engine.super_pacgums) <= 0:
+        if len(self.game_engine.pacgums) <= 0 and len(
+                self.game_engine.super_pacgums) <= 0:
             if self.game_states.level >= self.config.levels_to_generate:
                 self.ui_mode = UIMode.VICTORY
                 return

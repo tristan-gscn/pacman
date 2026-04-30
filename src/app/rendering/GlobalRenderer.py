@@ -3,6 +3,7 @@ import math
 import time
 
 from mazegenerator.mazegenerator import MazeGenerator
+from typing import Any
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
 from src.models import UIMode, Color
@@ -35,6 +36,8 @@ class GlobalRenderer:
     def __init__(self,
                  mazegen: MazeGenerator,
                  game_engine: GameEngine,
+                 current_input: str,
+                 file: str,
                  window_width: int | None = None,
                  window_height: int | None = None,
                  key_press_callback: Callable[[int], None] | None = None,
@@ -84,6 +87,7 @@ class GlobalRenderer:
         self.mazegen = mazegen
         self.old_maze = mazegen.maze
         self.game_engine = game_engine
+        self.current_input: str = "".join([letter for letter in current_input])
         self._level_time = self.game_engine.game_states.time_remaining
         self.win_width = win_width
         self.win_height = win_height
@@ -99,11 +103,15 @@ class GlobalRenderer:
         self._prev_pacgum_cells: set[tuple[int, int]] = set()
         self._prev_super_pacgum_cells: set[tuple[int, int]] = set()
         self._super_visible = True
-        self._gui_screens = {
-            UIMode.MAIN_MENU: MenuScreen(),
+        self._gui_screens: dict[UIMode, Any] = {
+            UIMode.MAIN_MENU: MenuScreen(file),
             UIMode.PAUSE_MENU: PauseMenuScreen(),
-            UIMode.GAME_OVER: GameOverScreen(),
-            UIMode.VICTORY: VictoryScreen(),
+            UIMode.GAME_OVER: GameOverScreen(
+                score=game_engine.game_states.score,
+                name=current_input),
+            UIMode.VICTORY: VictoryScreen(
+                score=game_engine.game_states.score,
+                name=current_input),
             UIMode.HIGHSCORES: HighscoresScreen(),
             UIMode.INSTRUCTIONS: InstructionsScreen(),
         }
@@ -187,6 +195,12 @@ class GlobalRenderer:
                     screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
                                   self.win_width, self.win_height)
                 self._last_ui_mode = ui_mode
+
+            if ui_mode in (UIMode.VICTORY, UIMode.GAME_OVER):
+                if screen.name != self.current_input:
+                    self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                    screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
+                                  self.win_width, self.win_height)
             return
 
         if ui_mode == UIMode.IN_GAME and ui_mode != self._last_ui_mode:
@@ -207,7 +221,7 @@ class GlobalRenderer:
 
         self.game_engine.game_states.time_remaining = self._level_time - int(
             now - self.beginning_timestamp
-        )  # TODO: Use level max time and not 90 harcoded
+        )
         self.last_update_time = now
 
         if update_state and self._update_callback is not None:

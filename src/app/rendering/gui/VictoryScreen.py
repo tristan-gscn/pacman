@@ -5,6 +5,13 @@ from src.models import Color
 
 
 class VictoryScreen(BaseScreen):
+    def __init__(self, score: int, name: str):
+        self.title = "VICTORY"
+        self.message = "GG, you won!"
+        self.score_text = f"Final Score: {score}"
+        self.prompt_title = "Enter your name:"
+        self.prompt_hint = name
+
     def render(
         self,
         mlx: Mlx,
@@ -13,21 +20,16 @@ class VictoryScreen(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
-        title = "VICTORY"
-        message = "GG, you won!"
-        score_text = "Final Score: 42"
-        prompt_title = "Entrez votre nom"
-        prompt_hint = "(logic coming soon)"
 
-        title_x = max((win_width // 2) - (len(title) * 6), 0)
+        title_x = max((win_width // 2) - (len(self.title) * 6), 0)
         title_y = max((win_height // 2) - 90, 0)
-        message_x = max((win_width // 2) - (len(message) * 5), 0)
+        message_x = max((win_width // 2) - (len(self.message) * 5), 0)
         message_y = title_y + 40
-        score_x = max((win_width // 2) - (len(score_text) * 5), 0)
+        score_x = max((win_width // 2) - (len(self.score_text) * 5), 0)
         score_y = message_y + 40
-        prompt_title_x = max((win_width // 2) - (len(prompt_title) * 5), 0)
+        prompt_title_x = max((win_width // 2) - (len(self.prompt_title) * 5), 0)
         prompt_title_y = score_y + 50
-        prompt_hint_x = max((win_width // 2) - (len(prompt_hint) * 4), 0)
+        prompt_hint_x = max((win_width // 2) - (len(self.prompt_hint) * 4), 0)
         prompt_hint_y = prompt_title_y + 30
 
         mlx.mlx_string_put(
@@ -36,7 +38,7 @@ class VictoryScreen(BaseScreen):
             title_x,
             title_y,
             Color.YELLOW,
-            title
+            self.title
         )
         mlx.mlx_string_put(
             mlx_ptr,
@@ -44,7 +46,7 @@ class VictoryScreen(BaseScreen):
             message_x,
             message_y,
             Color.WHITE,
-            message
+            self.message
         )
         mlx.mlx_string_put(
             mlx_ptr,
@@ -52,7 +54,7 @@ class VictoryScreen(BaseScreen):
             score_x,
             score_y,
             Color.WHITE,
-            score_text
+            self.score_text
         )
         mlx.mlx_string_put(
             mlx_ptr,
@@ -60,7 +62,7 @@ class VictoryScreen(BaseScreen):
             prompt_title_x,
             prompt_title_y,
             Color.WHITE,
-            prompt_title
+            self.prompt_title
         )
         mlx.mlx_string_put(
             mlx_ptr,
@@ -68,5 +70,5 @@ class VictoryScreen(BaseScreen):
             prompt_hint_x,
             prompt_hint_y,
             Color.YELLOW,
-            prompt_hint
+            self.prompt_hint
         )

@@ -8,15 +8,19 @@ class NPC(Actor):
         self,
         strategy: NPCStrategy,
         sprites: NPCSprites,
-        color: int
+        color: int,
+        start_x: float = 0.0,
+        start_y: float = 0.0
     ):
-        super().__init__()
+        super().__init__(x=start_x, y=start_y)
         self.strategy = strategy
         self.base_strategy = strategy
         self.sprites = sprites
         self.color = color
         self.path: list[tuple[int, int]] = []
         self.direction: str = "right"
+        self.start_x = start_x
+        self.start_y = start_y
         self.set_strategy(strategy)
 
     def set_strategy(self, strategy: NPCStrategy) -> None:

@@ -126,7 +126,7 @@ class App:
         """
         if self.game_engine is None:
             return
-        if len(self.game_engine.pacgums) <= 0:
+        if len(self.game_engine.pacgums) <= 0 and len(self.game_engine.super_pacgums) <= 0:
             if self.game_states.level >= self.config.levels_to_generate:
                 self.ui_mode = UIMode.VICTORY
                 return

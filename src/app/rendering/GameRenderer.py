@@ -2,6 +2,7 @@ from functools import partial
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.models import Color
 from src.app.game.PacGum import PacGum
+from src.app.game.SuperPacGum import SuperPacGum
 from .MazeRenderer import MazeRenderer
 
 
@@ -62,16 +63,26 @@ class GameRenderer:
         for pacgum in pacgums:
             self.draw_pacgum_at(int(round(pacgum.x)), int(round(pacgum.y)))
 
+    def render_super_pacgums(self, super_pacgums: list[SuperPacGum], visible: bool) -> None:
+        if not visible:
+            return
+        for spg in super_pacgums:
+            self.draw_super_pacgum_at(int(round(spg.x)), int(round(spg.y)))
+
     def redraw_cell(
         self,
         maze: list[list[int]],
         cell_x: int,
         cell_y: int,
-        has_pacgum: bool
+        has_pacgum: bool,
+        has_super_pacgum: bool = False,
+        super_visible: bool = True
     ) -> None:
         self.draw_cell_background(maze, cell_x, cell_y)
         if has_pacgum:
             self.draw_pacgum_at(cell_x, cell_y)
+        if has_super_pacgum and super_visible:
+            self.draw_super_pacgum_at(cell_x, cell_y)
 
     def draw_cell_background(
         self,
@@ -98,6 +109,25 @@ class GameRenderer:
 
     def draw_pacgum_at(self, cell_x: int, cell_y: int) -> None:
         radius = max(self.cell_size // 12, 1)
+        pixel_put = self.mlx.mlx_pixel_put
+        half_cell = self.cell_size / 2.0
+        center_x = int(round(cell_x * self.cell_size + self.offset_x + half_cell))
+        center_y = int(round(cell_y * self.cell_size + self.offset_y + half_cell))
+
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if dx * dx + dy * dy > radius * radius:
+                    continue
+                pixel_put(
+                    self.mlx_ptr,
+                    self.win_ptr,
+                    center_x + dx,
+                    center_y + dy,
+                    Color.WHITE
+                )
+
+    def draw_super_pacgum_at(self, cell_x: int, cell_y: int) -> None:
+        radius = max(self.cell_size // 6, 2)
         pixel_put = self.mlx.mlx_pixel_put
         half_cell = self.cell_size / 2.0
         center_x = int(round(cell_x * self.cell_size + self.offset_x + half_cell))

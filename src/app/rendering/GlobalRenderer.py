@@ -97,6 +97,8 @@ class GlobalRenderer:
         self._hud_dirty = True
         self._prev_actor_positions: dict[str, tuple[float, float]] = {}
         self._prev_pacgum_cells: set[tuple[int, int]] = set()
+        self._prev_super_pacgum_cells: set[tuple[int, int]] = set()
+        self._super_visible = True
         self._gui_screens = {
             UIMode.MAIN_MENU: MenuScreen(),
             UIMode.PAUSE_MENU: PauseMenuScreen(),
@@ -216,6 +218,7 @@ class GlobalRenderer:
             self.game_renderer.render_maze(self.mazegen.maze)
             self._update_hud_layout()
             self.game_renderer.render_pacgums(self.game_engine.pacgums)
+            self.game_renderer.render_super_pacgums(self.game_engine.super_pacgums, self._super_visible)
             self._render_sprites()
             self._render_hud(force=True)
             self._cache_frame_state()
@@ -226,6 +229,7 @@ class GlobalRenderer:
         self._render_incremental()
         if update_state and now - self.last_frame_time >=\
            self.FRAME_DELAY_SECONDS:
+            self._super_visible = not self._super_visible
             if self.game_engine.player.direction == "death" and\
                not self.is_player_dead:
                 self.frame_index = 0
@@ -282,12 +286,18 @@ class GlobalRenderer:
     def _render_incremental(self) -> None:
         current_pacgum_cells = {(int(round(pacgum.x)), int(round(pacgum.y)))
                                 for pacgum in self.game_engine.pacgums}
-        removed_cells = self._prev_pacgum_cells - current_pacgum_cells
+        current_super_cells = {(int(round(spg.x)), int(round(spg.y)))
+                               for spg in self.game_engine.super_pacgums}
+        
+        removed_cells = (self._prev_pacgum_cells - current_pacgum_cells) | \
+                        (self._prev_super_pacgum_cells - current_super_cells)
         if removed_cells:
             self._hud_dirty = True
-        added_cells = current_pacgum_cells - self._prev_pacgum_cells
 
         cells_to_redraw: set[tuple[int, int]] = set(removed_cells)
+        # Always redraw super pacgum cells because of blinking
+        cells_to_redraw |= current_super_cells | self._prev_super_pacgum_cells
+
         for prev_x, prev_y in self._prev_actor_positions.values():
             for cell in self._covered_cells(prev_x, prev_y):
                 cells_to_redraw.add(cell)
@@ -296,10 +306,12 @@ class GlobalRenderer:
             if not self._is_valid_cell(cell_x, cell_y):
                 continue
             has_pacgum = (cell_x, cell_y) in current_pacgum_cells
+            has_super = (cell_x, cell_y) in current_super_cells
             self.game_renderer.redraw_cell(self.mazegen.maze, cell_x, cell_y,
-                                           has_pacgum)
+                                           has_pacgum, has_super, self._super_visible)
 
-        for cell_x, cell_y in added_cells - cells_to_redraw:
+        added_pacgums = current_pacgum_cells - self._prev_pacgum_cells
+        for cell_x, cell_y in added_pacgums - cells_to_redraw:
             if not self._is_valid_cell(cell_x, cell_y):
                 continue
             self.game_renderer.draw_pacgum_at(cell_x, cell_y)
@@ -329,6 +341,8 @@ class GlobalRenderer:
             self._prev_actor_positions[name] = (npc.x, npc.y)
         self._prev_pacgum_cells = {(int(round(pacgum.x)), int(round(pacgum.y)))
                                    for pacgum in self.game_engine.pacgums}
+        self._prev_super_pacgum_cells = {(int(round(spg.x)), int(round(spg.y)))
+                                         for spg in self.game_engine.super_pacgums}
 
     def _covered_cells(self, grid_x: float,
                        grid_y: float) -> set[tuple[int, int]]:

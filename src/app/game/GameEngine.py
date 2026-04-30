@@ -5,6 +5,7 @@ from mazegenerator.mazegenerator import MazeGenerator
 from src.app.game.Actor import Actor
 from src.app.game.Player import Player
 from src.app.game.PacGum import PacGum
+from src.app.game.SuperPacGum import SuperPacGum
 from src.app.game.npc import NPC, ChaseStrategy, AmbushStrategy, \
     FleeStrategy, ScatterStrategy
 from src.models import NPCSprites, Color
@@ -51,23 +52,33 @@ class GameEngine:
         self.npcs: dict[str, NPC] = {
             "Blinky":
             NPC(strategy=ChaseStrategy(), sprites=npc_sprites,
-                color=Color.RED),
+                color=Color.RED,
+                start_x=float(len(self._mazegen.maze[0]) - 1),
+                start_y=0.0),
             "Pinky":
             NPC(strategy=AmbushStrategy(),
                 sprites=npc_sprites,
-                color=Color.MAGENTA),
+                color=Color.MAGENTA,
+                start_x=0.0,
+                start_y=0.0),
             "Inky":
             NPC(strategy=AmbushStrategy(),
                 sprites=npc_sprites,
-                color=Color.CYAN),
+                color=Color.CYAN,
+                start_x=0.0,
+                start_y=float(len(self._mazegen.maze) - 1)),
             "Clyde":
             NPC(strategy=ScatterStrategy(),
                 sprites=npc_sprites,
-                color=Color.GOLD)
+                color=Color.GOLD,
+                start_x=float(len(self._mazegen.maze[0]) - 1),
+                start_y=float(len(self._mazegen.maze) - 1))
         }
         self.player = Player()
         self.rebirth()
         self.pacgums: list[PacGum] = []
+        self.super_pacgums: list[SuperPacGum] = []
+        self.flee_timer: float = 0.0
         self._attach_engine()
         self.set_global_flee(self.global_flee)
         self._generate_pacgums()
@@ -88,10 +99,22 @@ class GameEngine:
 
     def _generate_pacgums(self) -> None:
         self.pacgums.clear()
+        self.super_pacgums.clear()
         occupied: set[tuple[int, int]] = set()
         occupied.add((int(round(self.player.x)), int(round(self.player.y))))
         for npc in self.npcs.values():
             occupied.add((int(round(npc.x)), int(round(npc.y))))
+
+        # Define corners for super pacgums
+        corners = [
+            (0, 0),
+            (len(self._mazegen.maze[0]) - 1, 0),
+            (0, len(self._mazegen.maze) - 1),
+            (len(self._mazegen.maze[0]) - 1, len(self._mazegen.maze) - 1)
+        ]
+        for cx, cy in corners:
+            self.super_pacgums.append(SuperPacGum(x=float(cx), y=float(cy)))
+            occupied.add((cx, cy))
 
         for y, row in enumerate(self._mazegen.maze):
             for x, cell in enumerate(row):
@@ -169,6 +192,16 @@ class GameEngine:
                 pacgum for pacgum in self.pacgums
                 if (int(round(pacgum.x)), int(round(pacgum.y))) != player_cell
             ]
+        if self.super_pacgums:
+            self.super_pacgums = [
+                spg for spg in self.super_pacgums
+                if (int(round(spg.x)), int(round(spg.y))) != player_cell
+            ]
+
+        if self.global_flee:
+            import time
+            if time.monotonic() > self.flee_timer:
+                self.set_global_flee(False)
 
     def update_ghosts(self) -> None:
         for ghost in self.npcs.values():
@@ -243,29 +276,43 @@ class GameEngine:
             py: int = self.player.y
             for ghost in self.npcs.values():
                 if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 0.64:
-                    self.player.direction = "death"
-                    self.game_states.current_lives -= 1
+                    if self.global_flee:
+                        # Eat ghost
+                        ghost.x = ghost.start_x
+                        ghost.y = ghost.start_y
+                        self.game_states.score += self.game_states.points_per_ghost
+                        ghost.path = []
+                    else:
+                        self.player.direction = "death"
+                        self.game_states.current_lives -= 1
                     return
 
     def eating_pacgum(self) -> None:
-        current_pacgum_cells = [
-            (pacgum.x, pacgum.y) for pacgum in self.pacgums
-            if int(round(pacgum.x)) == int(round(self.player.x))
-            and int(round(pacgum.y)) == int(round(self.player.y))
+        px, py = int(round(self.player.x)), int(round(self.player.y))
+        
+        # Check normal pacgums
+        eaten_pacgums = [
+            p for p in self.pacgums
+            if int(round(p.x)) == px and int(round(p.y)) == py
         ]
+        if eaten_pacgums:
+            self.game_states.score += len(eaten_pacgums) * self.game_states.points_per_pacgum
 
-        self.game_states.score += len(
-            current_pacgum_cells) * self.game_states.points_per_pacgum
+        # Check super pacgums
+        eaten_super = [
+            spg for spg in self.super_pacgums
+            if int(round(spg.x)) == px and int(round(spg.y)) == py
+        ]
+        if eaten_super:
+            self.game_states.score += len(eaten_super) * self.game_states.points_per_super_pacgum
+            self.set_global_flee(True)
+            import time
+            self.flee_timer = time.monotonic() + 10.0
 
     def rebirth(self) -> None:
         self.player.direction = "right"
         self.player.x = len(self._mazegen.maze[0]) // 2 - (len(self._mazegen.maze[0]) % 2 == 0)
         self.player.y = len(self._mazegen.maze) // 2 - (len(self._mazegen.maze) % 2 == 0)
-        self.npcs["Blinky"].x = len(self._mazegen.maze[0]) - 1
-        self.npcs["Blinky"].y = 0
-        self.npcs["Pinky"].x = 0
-        self.npcs["Pinky"].y = 0
-        self.npcs["Inky"].x = 0
-        self.npcs["Inky"].y = len(self._mazegen.maze) - 1
-        self.npcs["Clyde"].x = len(self._mazegen.maze[0]) - 1
-        self.npcs["Clyde"].y = len(self._mazegen.maze) - 1
+        for ghost in self.npcs.values():
+            ghost.x = ghost.start_x
+            ghost.y = ghost.start_y

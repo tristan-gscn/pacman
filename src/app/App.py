@@ -123,17 +123,19 @@ class App:
     def _on_update(self) -> None:
         """Move the player continuously based on current input state.
         """
+        if self.game_engine is None:
+            return
         if len(self.game_engine.pacgums) <= 0:
+            if self.game_states.level >= self.config.levels_to_generate:
+                self.ui_mode = UIMode.VICTORY
+                return
             self.mazegen.generate()
             self.game_engine.rebirth()
             self.game_engine._generate_pacgums()
             self.game_states.time_remaining = self.config.level_max_time
             self.game_states.level += 1
-        if self.game_engine is None:
-            return
         if self.ui_mode != UIMode.IN_GAME:
             return
         if self.game_engine.player.direction != "death":
             self.game_engine.update()
             self.game_engine.update_ghosts()
-

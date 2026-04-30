@@ -15,6 +15,7 @@ class Configuration(BaseModel):
     points_per_ghost: int = Field(..., ge=0)
     seed: Optional[str | int] = None
     level_max_time: int = Field(..., ge=1)
+    levels_to_generate: int = Field(10, ge=10)
 
     @field_validator('highscore_filename', mode='after')
     @classmethod

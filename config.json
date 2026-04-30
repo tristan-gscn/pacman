@@ -1,10 +1,9 @@
 
 {
 	"highscore_filename": "score.json",
-	"width": 16,
-	"height": 16,
-	"lives": 3,
-	"pacgum": 1.0,
+	"width": 20,
+	"height": 20,
+	"lives": 5,
 	"points_per_pacgum": 5,
 	"points_per_super_pacgum": 4,
 	"points_per_ghost": 5,

@@ -29,6 +29,7 @@ class App:
         self.game_states: GameStates = GameStates(
             time_remaining=self.config.level_max_time,
             max_lives=self.config.lives,
+            current_lives=self.config.lives,
             points_per_ghost=self.config.points_per_ghost,
             points_per_pacgum=self.config.points_per_pacgum,
             points_per_super_pacgum=self.config.points_per_super_pacgum
@@ -36,7 +37,7 @@ class App:
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
         self.ui_mode = UIMode.MAIN_MENU
-        self.mazegen = MazeGenerator(size=(5,5))
+        self.mazegen = MazeGenerator(size=(self.config.width, self.config.height))
 
     def run(self) -> None:
         try:

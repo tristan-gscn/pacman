@@ -27,8 +27,8 @@ class GlobalRenderer:
     mlx_ptr: int
     win_ptr: int
 
-    WINDOW_WIDTH: int = 1200
-    WINDOW_HEIGHT: int = 800
+    WINDOW_WIDTH: int = 1400
+    WINDOW_HEIGHT: int = 1000
     CELL_SIZE: int = 40
     FRAME_DELAY_SECONDS: float = 0.15
 

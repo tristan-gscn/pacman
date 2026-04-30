@@ -27,7 +27,6 @@ class GameEngine:
         self.ghost_speed_factor = 0.7
         self.global_flee = False
         self.game_states: GameStates = game_states
-        self.pacgum_spawn_chance = 1.0
         self._mazegen: MazeGenerator = mazegen
         self._key_to_direction: dict[int, str] = {
             65361: "left",
@@ -99,8 +98,6 @@ class GameEngine:
                 if (x, y) in occupied:
                     continue
                 if cell == 15:
-                    continue
-                if random.random() > self.pacgum_spawn_chance:
                     continue
                 self.pacgums.append(PacGum(x=float(x), y=float(y)))
 
@@ -246,8 +243,8 @@ class GameEngine:
             py: int = self.player.y
             for ghost in self.npcs.values():
                 if ((ghost.x - px)**2 + (ghost.y - py)**2) <= 0.64:
-                    # self.player.direction = "death"
-                    # self.game_states.current_lives -= 1
+                    self.player.direction = "death"
+                    self.game_states.current_lives -= 1
                     return
 
     def eating_pacgum(self) -> None:

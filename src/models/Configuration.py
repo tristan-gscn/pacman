@@ -6,10 +6,9 @@ class Configuration(BaseModel):
 
     model_config = ConfigDict(extra='forbid')
     highscore_filename: str
-    width: int = Field(..., gt=0, le=30)
-    height: int = Field(..., gt=0, le=30)
+    width: int = Field(..., gt=0, le=20)
+    height: int = Field(..., gt=0, le=20)
     lives: int = Field(3, ge=1)
-    pacgum: float = Field(..., ge=0, le=1.0)
     points_per_pacgum: int = Field(..., ge=0)
     points_per_super_pacgum: int = Field(..., ge=0)
     points_per_ghost: int = Field(..., ge=0)

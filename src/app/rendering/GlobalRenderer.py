@@ -2,6 +2,7 @@ from typing import Callable
 import math
 import time
 
+from mazegenerator.mazegenerator import MazeGenerator
 from mlx import Mlx  # type: ignore[import-untyped]
 from src.app.game.GameEngine import GameEngine
 from src.models import UIMode, Color
@@ -32,7 +33,7 @@ class GlobalRenderer:
     FRAME_DELAY_SECONDS: float = 0.15
 
     def __init__(self,
-                 maze: list[list[int]],
+                 mazegen: MazeGenerator,
                  game_engine: GameEngine,
                  window_width: int | None = None,
                  window_height: int | None = None,
@@ -80,8 +81,8 @@ class GlobalRenderer:
         self.mlx.mlx_do_key_autorepeatoff(self.mlx_ptr)
 
         self.beginning_timestamp: float
-        self.maze = maze
-        self.old_maze = maze
+        self.mazegen = mazegen
+        self.old_maze = mazegen.maze
         self.game_engine = game_engine
         self._level_time = self.game_engine.game_states.time_remaining
         self.win_width = win_width
@@ -197,12 +198,10 @@ class GlobalRenderer:
     def _render_game_frame(self, update_state: bool) -> None:
         now = time.monotonic()
 
-        if self.maze != self.old_maze:
-            print("HELLO")
+        if self.mazegen.maze != self.old_maze:
             self._needs_full_redraw = True
-            self.old_maze = self.maze
+            self.old_maze = self.mazegen.maze
             self.beginning_timestamp = time.monotonic()
-            print(self.beginning_timestamp)
 
         self.game_engine.game_states.time_remaining = self._level_time - int(
             now - self.beginning_timestamp
@@ -214,7 +213,7 @@ class GlobalRenderer:
 
         if self._needs_full_redraw:
             self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
-            self.game_renderer.render_maze(self.maze)
+            self.game_renderer.render_maze(self.mazegen.maze)
             self._update_hud_layout()
             self.game_renderer.render_pacgums(self.game_engine.pacgums)
             self._render_sprites()
@@ -248,9 +247,9 @@ class GlobalRenderer:
     def _update_hud_layout(self) -> None:
         maze_width = 0
         maze_height = 0
-        if self.maze:
-            maze_width = len(self.maze[0]) * self.CELL_SIZE
-            maze_height = len(self.maze) * self.CELL_SIZE
+        if self.mazegen.maze:
+            maze_width = len(self.mazegen.maze[0]) * self.CELL_SIZE
+            maze_height = len(self.mazegen.maze) * self.CELL_SIZE
         if self._hud.update_layout(self.game_renderer.offset_x,
                                    self.game_renderer.offset_y, maze_width,
                                    maze_height):
@@ -297,7 +296,7 @@ class GlobalRenderer:
             if not self._is_valid_cell(cell_x, cell_y):
                 continue
             has_pacgum = (cell_x, cell_y) in current_pacgum_cells
-            self.game_renderer.redraw_cell(self.maze, cell_x, cell_y,
+            self.game_renderer.redraw_cell(self.mazegen.maze, cell_x, cell_y,
                                            has_pacgum)
 
         for cell_x, cell_y in added_cells - cells_to_redraw:
@@ -342,9 +341,9 @@ class GlobalRenderer:
                 for cell_y in range(min_y, max_y + 1)}
 
     def _is_valid_cell(self, cell_x: int, cell_y: int) -> bool:
-        if not self.maze:
+        if not self.mazegen.maze:
             return False
-        return 0 <= cell_y < len(self.maze) and 0 <= cell_x < len(self.maze[0])
+        return 0 <= cell_y < len(self.mazegen.maze) and 0 <= cell_x < len(self.mazegen.maze[0])
 
     def set_player_direction(self, direction: str) -> None:
         """Set the active player sprite direction.

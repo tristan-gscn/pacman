@@ -1,5 +1,7 @@
 import random
 
+from mazegenerator.mazegenerator import MazeGenerator
+
 from src.app.game.Actor import Actor
 from src.app.game.Player import Player
 from src.app.game.PacGum import PacGum
@@ -19,14 +21,14 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 
 class GameEngine:
 
-    def __init__(self, maze: list[list[int]], path_finder: FindPath,
+    def __init__(self, mazegen: MazeGenerator, path_finder: FindPath,
                  game_states: GameStates) -> None:
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
         self.global_flee = False
         self.game_states: GameStates = game_states
         self.pacgum_spawn_chance = 1.0
-        self._maze: list[list[int]] = maze
+        self._mazegen: MazeGenerator = mazegen
         self._key_to_direction: dict[int, str] = {
             65361: "left",
             97: "left",
@@ -92,7 +94,7 @@ class GameEngine:
         for npc in self.npcs.values():
             occupied.add((int(round(npc.x)), int(round(npc.y))))
 
-        for y, row in enumerate(self._maze):
+        for y, row in enumerate(self._mazegen.maze):
             for x, cell in enumerate(row):
                 if (x, y) in occupied:
                     continue
@@ -205,7 +207,7 @@ class GameEngine:
         self.collisions()
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
-        return MazeUtils.unpack_cell(self._maze[int(y)][int(x)])
+        return MazeUtils.unpack_cell(self._mazegen.maze[int(y)][int(x)])
 
     def check_movements(self, walls: dict[str, bool], direction: str) -> bool:
         if direction == "left" and walls["W"]:
@@ -221,7 +223,7 @@ class GameEngine:
     def gosts_path(self, ghost: NPC) -> None:
         ghost.path = self.path_finder.a_star_algorithm(
             (int(round(ghost.y)), int(round(ghost.x))),
-            ghost.strategy.act(self._maze, self.player))
+            ghost.strategy.act(self._mazegen.maze, self.player))
         self.gosts_direction(ghost)
 
     def gosts_direction(self, ghost: NPC) -> None:
@@ -260,13 +262,13 @@ class GameEngine:
 
     def rebirth(self) -> None:
         self.player.direction = "right"
-        self.player.x = len(self._maze[0]) // 2 - (len(self._maze[0]) % 2 == 0)
-        self.player.y = len(self._maze) // 2 - (len(self._maze) % 2 == 0)
-        self.npcs["Blinky"].x = len(self._maze[0]) - 1
+        self.player.x = len(self._mazegen.maze[0]) // 2 - (len(self._mazegen.maze[0]) % 2 == 0)
+        self.player.y = len(self._mazegen.maze) // 2 - (len(self._mazegen.maze) % 2 == 0)
+        self.npcs["Blinky"].x = len(self._mazegen.maze[0]) - 1
         self.npcs["Blinky"].y = 0
         self.npcs["Pinky"].x = 0
         self.npcs["Pinky"].y = 0
         self.npcs["Inky"].x = 0
-        self.npcs["Inky"].y = len(self._maze) - 1
-        self.npcs["Clyde"].x = len(self._maze[0]) - 1
-        self.npcs["Clyde"].y = len(self._maze) - 1
+        self.npcs["Inky"].y = len(self._mazegen.maze) - 1
+        self.npcs["Clyde"].x = len(self._mazegen.maze[0]) - 1
+        self.npcs["Clyde"].y = len(self._mazegen.maze) - 1

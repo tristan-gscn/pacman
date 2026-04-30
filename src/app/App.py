@@ -36,16 +36,16 @@ class App:
         self.game_engine: GameEngine | None = None
         self.renderer: GlobalRenderer | None = None
         self.ui_mode = UIMode.MAIN_MENU
-        self.mazegen = MazeGenerator()
+        self.mazegen = MazeGenerator(size=(5,5))
 
     def run(self) -> None:
         try:
             self.mazegen.generate()
             path_finder: FindPath = FindPath(self.mazegen.maze)
-            self.game_engine = GameEngine(self.mazegen.maze, path_finder,
+            self.game_engine = GameEngine(self.mazegen, path_finder,
                                           self.game_states)
             self.renderer = GlobalRenderer(
-                self.mazegen.maze,
+                self.mazegen,
                 self.game_engine,
                 key_press_callback=self._on_key_press,
                 key_release_callback=self._on_key_release,
@@ -127,7 +127,7 @@ class App:
             self.mazegen.generate()
             self.game_engine.rebirth()
             self.game_engine._generate_pacgums()
-            self.game_states.time_remaining = self.config.level_max_time  # TODO need to update with config file
+            self.game_states.time_remaining = self.config.level_max_time
             self.game_states.level += 1
         if self.game_engine is None:
             return

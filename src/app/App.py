@@ -26,6 +26,7 @@ class App:
             self.config: Configuration = ConfigParser().parse(self.config_path)
         except Exception as e:
             print(f"{type(e).__name__} error occured while parsing: {e}")
+            os._exit(1)
         self.game_states: GameStates = GameStates(
             time_remaining=self.config.level_max_time,
             max_lives=self.config.lives,

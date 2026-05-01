@@ -149,10 +149,18 @@ class GlobalRenderer:
             self.sprite_renderer.load_sprite_frames(
                 self.game_engine.player.sprites.death)
         }
-        self.npc_frames: dict[str, list[int]] = {}
+        self.npc_frames: dict[str, dict[str, list[int]]] = {}
         for name, npc in self.game_engine.npcs.items():
-            self.npc_frames[name] = self.sprite_renderer.load_sprite_frames(
-                npc.sprites.mov_right, recolor=npc.color)
+            self.npc_frames[name] = {
+                "left": self.sprite_renderer.load_sprite_frames(
+                    npc.sprites.mov_left, recolor=npc.color),
+                "right": self.sprite_renderer.load_sprite_frames(
+                    npc.sprites.mov_right, recolor=npc.color),
+                "up": self.sprite_renderer.load_sprite_frames(
+                    npc.sprites.mov_up, recolor=npc.color),
+                "down": self.sprite_renderer.load_sprite_frames(
+                    npc.sprites.mov_down, recolor=npc.color),
+            }
         first_npc = next(iter(self.game_engine.npcs.values()), None)
         self.npc_fear_frames = []
         if first_npc is not None:
@@ -383,9 +391,12 @@ class GlobalRenderer:
     def _render_sprites(self) -> None:
         """Render all NPC and player sprites at their current positions."""
         for name, npc in self.game_engine.npcs.items():
-            frames = self.npc_frames.get(name, [])
             if npc.is_fleeing:
                 frames = self.npc_fear_frames
+            else:
+                direction = getattr(npc, "direction", "right")
+                frames_dict = self.npc_frames.get(name, {})
+                frames = frames_dict.get(direction, frames_dict.get("right", []))
 
             # Hide ghost if it's respawning
             if time.monotonic() < npc.respawn_time:

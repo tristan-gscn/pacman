@@ -51,6 +51,17 @@ class MazeRenderer:
         offset_y: int = 0,
         cell_size: int = 40
     ) -> None:
+        """Render a single cell of the maze.
+
+        Args:
+            x (int): Grid x-coordinate.
+            y (int): Grid y-coordinate.
+            cell (int): Wall bitmask.
+            pixel_put (Callable): Pixel drawing function.
+            offset_x (int): Horizontal pixel offset.
+            offset_y (int): Vertical pixel offset.
+            cell_size (int): Cell size in pixels.
+        """
         self._render_cell(
             x,
             y,

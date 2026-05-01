@@ -4,6 +4,11 @@ from src.models import NPCSprites
 
 
 class NPC(Actor):
+    """Non-Player Character (Ghost) in the game.
+
+    Controlled by a strategy and moves towards a target.
+    """
+
     def __init__(
         self,
         strategy: NPCStrategy,
@@ -12,6 +17,15 @@ class NPC(Actor):
         start_x: float = 0.0,
         start_y: float = 0.0
     ):
+        """Initialize an NPC.
+
+        Args:
+            strategy (NPCStrategy): The movement strategy for the NPC.
+            sprites (NPCSprites): Sprite set for the NPC.
+            color (int): Color representing the NPC.
+            start_x (float): Initial x-coordinate and respawn point.
+            start_y (float): Initial y-coordinate and respawn point.
+        """
         super().__init__(x=start_x, y=start_y)
         self.strategy = strategy
         self.base_strategy = strategy
@@ -27,6 +41,11 @@ class NPC(Actor):
         self.set_strategy(strategy)
 
     def set_strategy(self, strategy: NPCStrategy) -> None:
+        """Set a new movement strategy for the NPC.
+
+        Args:
+            strategy (NPCStrategy): The new strategy to apply.
+        """
         self.strategy = strategy
         self.strategy.path = self.path
 

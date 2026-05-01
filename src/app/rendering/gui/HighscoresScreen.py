@@ -5,7 +5,14 @@ from src.models import Color
 
 
 class HighscoresScreen(BaseScreen):
+    """Screen displaying the top 10 high scores."""
+
     def __init__(self, filename: str):
+        """Initialize the high scores screen.
+
+        Args:
+            filename (str): Path to the JSON high scores file.
+        """
         self.filename = filename
 
     def render(
@@ -16,6 +23,15 @@ class HighscoresScreen(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
+        """Render the high scores list loaded from the scores file.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
         title = "HIGHSCORES"
         hint = "Press ESC to return"
 

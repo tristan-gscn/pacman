@@ -3,7 +3,10 @@ from src.models import PlayerSprites
 
 
 class Player(Actor):
+    """The player character (Pacman) controlled by the user."""
+
     def __init__(self) -> None:
+        """Initialize the player with default direction and sprites."""
         super().__init__()
         self.direction = "right"
         self.sprites = PlayerSprites(

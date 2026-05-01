@@ -19,6 +19,17 @@ class Configuration(BaseModel):
     @field_validator('highscore_filename', mode='after')
     @classmethod
     def check_extension(cls, value: str) -> str:
+        """Validate that the highscore filename ends with .json.
+
+        Args:
+            value (str): The filename to validate.
+
+        Returns:
+            str: The validated filename.
+
+        Raises:
+            ValueError: If the filename does not end with .json.
+        """
         if not value.endswith('.json'):
             raise ValueError('Your highscore_filename must end with .json')
         return value

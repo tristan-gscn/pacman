@@ -13,6 +13,15 @@ class PauseMenuScreen(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
+        """Render the pause menu overlay with resume and exit options.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
         box_width = 300
         box_height = 170
         box_x = max((win_width - box_width) // 2, 0)
@@ -86,6 +95,18 @@ class PauseMenuScreen(BaseScreen):
         height: int,
         color: int
     ) -> None:
+        """Draw a solid filled rectangle.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            x (int): Left pixel coordinate.
+            y (int): Top pixel coordinate.
+            width (int): Rectangle width.
+            height (int): Rectangle height.
+            color (int): RGBA fill color.
+        """
         pixel_put = mlx.mlx_pixel_put
         for py in range(y, y + height):
             for px in range(x, x + width):
@@ -102,6 +123,18 @@ class PauseMenuScreen(BaseScreen):
         height: int,
         color: int
     ) -> None:
+        """Draw a rectangular border outline.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            x (int): Left pixel coordinate.
+            y (int): Top pixel coordinate.
+            width (int): Rectangle width.
+            height (int): Rectangle height.
+            color (int): RGBA border color.
+        """
         pixel_put = mlx.mlx_pixel_put
         max_x = x + width - 1
         max_y = y + height - 1

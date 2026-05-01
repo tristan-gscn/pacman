@@ -6,7 +6,14 @@ from src.models.GameStates import GameStates
 
 
 class InGameHud(BaseScreen):
+    """Heads-up display rendered during gameplay showing score, lives, and level."""
+
     def __init__(self, game_states: GameStates) -> None:
+        """Initialize the HUD with game state references.
+
+        Args:
+            game_states (GameStates): Shared game state object.
+        """
         self._maze_offset_x = 0
         self._maze_offset_y = 0
         self._maze_width = 0
@@ -20,6 +27,17 @@ class InGameHud(BaseScreen):
         maze_width: int,
         maze_height: int
     ) -> bool:
+        """Update the HUD layout based on maze position and dimensions.
+
+        Args:
+            maze_offset_x (int): Horizontal maze offset in pixels.
+            maze_offset_y (int): Vertical maze offset in pixels.
+            maze_width (int): Maze width in pixels.
+            maze_height (int): Maze height in pixels.
+
+        Returns:
+            bool: True if the layout changed and HUD needs redrawing.
+        """
         next_offset_x = max(maze_offset_x, 0)
         next_offset_y = max(maze_offset_y, 0)
         next_width = max(maze_width, 0)
@@ -69,6 +87,15 @@ class InGameHud(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
+        """Render the in-game HUD with level, timer, score, and life hearts.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
         layout = self._get_layout(win_width, win_height)
         maze_left, maze_right, _, _, top_y, bottom_y = layout
 
@@ -137,6 +164,15 @@ class InGameHud(BaseScreen):
         win_width: int,
         win_height: int
     ) -> list[tuple[int, int, int, int]]:
+        """Get the rectangular regions occupied by HUD elements.
+
+        Args:
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+
+        Returns:
+            list[tuple[int, int, int, int]]: List of (x, y, width, height) tuples.
+        """
         maze_left, maze_right, _, _, top_y, bottom_y = self._get_layout(
             win_width,
             win_height
@@ -185,6 +221,16 @@ class InGameHud(BaseScreen):
         win_width: int,
         win_height: int
     ) -> tuple[int, int, int, int, int, int]:
+        """Compute the layout boundaries for HUD element placement.
+
+        Args:
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+
+        Returns:
+            tuple[int, int, int, int, int, int]: Maze left, right, top, bottom,
+                top_y for upper HUD, and bottom_y for lower HUD.
+        """
         maze_left = self._maze_offset_x
         maze_top = self._maze_offset_y
         maze_width = self._maze_width
@@ -212,6 +258,17 @@ class InGameHud(BaseScreen):
         scale: int,
         filled: bool
     ) -> None:
+        """Draw a heart-shaped pixel art life indicator.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            x (int): Left pixel coordinate.
+            y (int): Top pixel coordinate.
+            scale (int): Pixel scale factor for the heart.
+            filled (bool): Whether the heart is filled (alive) or outlined.
+        """
         if filled:
             pattern = [
                 "01100110",

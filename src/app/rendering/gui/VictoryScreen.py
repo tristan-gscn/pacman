@@ -5,7 +5,15 @@ from src.models import Color
 
 
 class VictoryScreen(BaseScreen):
+    """Screen displayed when the player completes all levels."""
+
     def __init__(self, score: int, name: str):
+        """Initialize the victory screen.
+
+        Args:
+            score (int): The player's final score.
+            name (str): The player's name input.
+        """
         self.title = "VICTORY"
         self.message = "GG, you won!"
         self.score_text = f"Final Score: {score}"
@@ -20,6 +28,15 @@ class VictoryScreen(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
+        """Render the victory screen with score and name input prompt.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
 
         title_x = max((win_width // 2) - (len(self.title) * 6), 0)
         title_y = max((win_height // 2) - 90, 0)

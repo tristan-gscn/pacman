@@ -5,7 +5,15 @@ from src.models import Color
 
 
 class GameOverScreen(BaseScreen):
+    """Screen displayed when the player loses all lives."""
+
     def __init__(self, score: int, name: str):
+        """Initialize the game over screen.
+
+        Args:
+            score (int): The player's final score.
+            name (str): The player's name input.
+        """
         self.title = "GAME OVER"
         self.score_text = f"Final Score: {score}"
         self.prompt_title = "Enter your name:"
@@ -19,6 +27,15 @@ class GameOverScreen(BaseScreen):
         win_width: int,
         win_height: int
     ) -> None:
+        """Render the game over screen with score and name input prompt.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
 
         title_x = max((win_width // 2) - (len(self.title) * 6), 0)
         title_y = max((win_height // 2) - 80, 0)

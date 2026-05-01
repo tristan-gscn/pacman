@@ -3,6 +3,8 @@ from mlx import Mlx
 
 
 class SpriteRenderer:
+    """Renderer for handling and drawing sprites with caching and recoloring."""
+
     def __init__(
         self,
         mlx: Mlx,

@@ -20,9 +20,20 @@ npc_sprites = NPCSprites(fear="npc/fear.png",
 
 
 class GameEngine:
+    """Core game logic engine for Pacman.
+
+    Handles movement, collisions, NPC strategies, and game state updates.
+    """
 
     def __init__(self, mazegen: MazeGenerator, path_finder: FindPath,
                  game_states: GameStates) -> None:
+        """Initialize the game engine.
+
+        Args:
+            mazegen (MazeGenerator): The maze generator instance.
+            path_finder (FindPath): The pathfinding utility.
+            game_states (GameStates): The current game states and stats.
+        """
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
         self.global_flee = False
@@ -81,6 +92,11 @@ class GameEngine:
         self._generate_pacgums()
 
     def set_global_flee(self, enabled: bool) -> None:
+        """Enable or disable global fleeing state for all NPCs.
+
+        Args:
+            enabled (bool): True to enable fleeing, False to return to normal.
+        """
         self.global_flee = enabled
         for npc in self.npcs.values():
             if enabled:
@@ -90,11 +106,17 @@ class GameEngine:
             npc.path = []
 
     def _attach_engine(self) -> None:
+        """Attach this game engine instance to all actors (player and NPCs)."""
         self.player.set_game_engine(self)
         for npc in self.npcs.values():
             npc.set_game_engine(self)
 
     def _generate_pacgums(self) -> None:
+        """Generate pacgums and super pacgums across the maze.
+
+        Places super pacgums in corners and normal pacgums in all other
+        non-wall cells not occupied by actors.
+        """
         self.pacgums.clear()
         self.super_pacgums.clear()
         occupied: set[tuple[int, int]] = set()
@@ -122,13 +144,30 @@ class GameEngine:
                 self.pacgums.append(PacGum(x=float(x), y=float(y)))
 
     def set_player_direction(self, direction: str) -> None:
+        """Set the current direction of the player.
+
+        Args:
+            direction (str): The new direction (e.g., 'left', 'right', 'up', 'down').
+        """
         self.player.direction = direction
 
     def move_actor(self, actor: Actor, dx: float, dy: float) -> None:
+        """Move an actor by a given delta.
+
+        Args:
+            actor (Actor): The actor to move.
+            dx (float): Change in x-coordinate.
+            dy (float): Change in y-coordinate.
+        """
         actor.x += dx
         actor.y += dy
 
     def on_key_press(self, keycode: int) -> None:
+        """Handle key press events to update player movement intent.
+
+        Args:
+            keycode (int): MLX key code for the pressed key.
+        """
         direction = self._key_to_direction.get(keycode)
         if direction is None:
             return
@@ -139,6 +178,11 @@ class GameEngine:
         self.set_player_direction(direction)
 
     def on_key_release(self, keycode: int) -> None:
+        """Handle key release events.
+
+        Args:
+            keycode (int): MLX key code for the released key.
+        """
         direction = self._key_to_direction.get(keycode)
         if direction is None:
             return
@@ -151,6 +195,7 @@ class GameEngine:
                 self.set_player_direction(self._active_direction)
 
     def update(self) -> None:
+        """Update player movement and eating logic for the current frame."""
         if self._active_direction in ["left", "right"]:
             self.player.y = float(round(self.player.y))
         elif self._active_direction in ["up", "down"]:
@@ -196,6 +241,7 @@ class GameEngine:
             ]
 
     def update_ghosts(self) -> None:
+        """Update all NPCs logic, movement, and check for collisions."""
         import time
         current_time = time.monotonic()
         for ghost in self.npcs.values():
@@ -239,9 +285,27 @@ class GameEngine:
         self.collisions()
 
     def check_walls(self, x: float, y: float) -> dict[str, bool]:
+        """Check for walls at a given maze coordinate.
+
+        Args:
+            x (float): The x-coordinate in the maze.
+            y (float): The y-coordinate in the maze.
+
+        Returns:
+            dict[str, bool]: Unpacked wall info for the cell.
+        """
         return MazeUtils.unpack_cell(self._mazegen.maze[int(y)][int(x)])
 
     def check_movements(self, walls: dict[str, bool], direction: str) -> bool:
+        """Check if movement is possible in a given direction based on walls.
+
+        Args:
+            walls (dict[str, bool]): Wall info for the current cell.
+            direction (str): The direction to check movement for.
+
+        Returns:
+            bool: True if movement is possible, False otherwise.
+        """
         if direction == "left" and walls["W"]:
             return False
         if direction == "right" and walls["E"]:
@@ -253,12 +317,22 @@ class GameEngine:
         return True
 
     def gosts_path(self, ghost: NPC) -> None:
+        """Calculate the next path for a ghost.
+
+        Args:
+            ghost (NPC): The ghost to update path for.
+        """
         ghost.path = self.path_finder.a_star_algorithm(
             (int(round(ghost.y)), int(round(ghost.x))),
             ghost.strategy.act(self._mazegen.maze, self.player))
         self.gosts_direction(ghost)
 
     def gosts_direction(self, ghost: NPC) -> None:
+        """Set the ghost's direction based on its current path.
+
+        Args:
+            ghost (NPC): The ghost to update direction for.
+        """
         dest_x: int
         dest_y: int
         if ghost.path and len(ghost.path) > 1:
@@ -273,6 +347,7 @@ class GameEngine:
                 ghost.direction = "down"
 
     def collisions(self) -> None:
+        """Check for collisions between the player and ghosts."""
         import time
         if self.player.direction != "death":
             px: float = self.player.x
@@ -298,6 +373,7 @@ class GameEngine:
                     return
 
     def eating_pacgum(self) -> None:
+        """Check if the player is eating any pacgum and update score/state."""
         px, py = int(round(self.player.x)), int(round(self.player.y))
 
         # Check normal pacgums
@@ -327,6 +403,7 @@ class GameEngine:
                     npc.path = []
 
     def rebirth(self) -> None:
+        """Reset player and ghosts to their starting positions and states."""
         self.path_finder.maze = self._mazegen.maze
         self.player.direction = "right"
         self.player.x = (len(self._mazegen.maze[0]) // 2

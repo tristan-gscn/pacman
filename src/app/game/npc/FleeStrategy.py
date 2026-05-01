@@ -10,16 +10,32 @@ if TYPE_CHECKING:
 
 
 class FleeStrategy(NPCStrategy):
+    """Strategy for NPCs to flee from the player."""
 
     def __init__(self) -> None:
+        """Initialize the flee strategy."""
         self.flee_target: tuple[int, int] | None = None
         self.npc_pos: tuple[int, int] = (0, 0)
         self.npc: NPC | None = None
 
     def set_npc(self, npc: NPC) -> None:
+        """Set the NPC instance using this strategy.
+
+        Args:
+            npc (NPC): The NPC instance.
+        """
         self.npc = npc
 
     def act(self, grid: list[list[int]], player: Player) -> tuple[int, int]:
+        """Determine a target cell far away from the player.
+
+        Args:
+            grid (list[list[int]]): The maze grid.
+            player (Player): The player instance.
+
+        Returns:
+            tuple[int, int]: The target (row, col) coordinate to flee to.
+        """
         if self.npc is not None:
             self.npc_pos = (int(round(self.npc.y)), int(round(self.npc.x)))
 
@@ -37,10 +53,30 @@ class FleeStrategy(NPCStrategy):
         player_pos: tuple[int, int],
         npc_pos: tuple[int, int]
     ) -> tuple[int, int]:
+        """Calculate the best cell to flee to.
+
+        Finds the reachable cell that is furthest from the player.
+
+        Args:
+            grid (list[list[int]]): The maze grid.
+            player_pos (tuple[int, int]): Current player (row, col).
+            npc_pos (tuple[int, int]): Current NPC (row, col).
+
+        Returns:
+            tuple[int, int]: The chosen flee target (row, col).
+        """
         height = len(grid)
         width = len(grid[0]) if height else 0
 
         def in_bounds(coordinates: tuple[int, int]) -> bool:
+            """Check if coordinates are within the maze grid.
+
+            Args:
+                coordinates (tuple[int, int]): (row, col) tuple to check.
+
+            Returns:
+                bool: True if coordinates are within bounds.
+            """
             row, col = coordinates
             return 0 <= row < height and 0 <= col < width
 
@@ -48,6 +84,14 @@ class FleeStrategy(NPCStrategy):
             return player_pos
 
         def get_neighbors(position: tuple[int, int]) -> list[tuple[int, int]]:
+            """Get accessible neighboring cells respecting maze walls.
+
+            Args:
+                position (tuple[int, int]): Current (row, col) position.
+
+            Returns:
+                list[tuple[int, int]]: List of accessible neighbor coordinates.
+            """
             row, col = position
             walls = MazeUtils.unpack_cell(grid[row][col])
             neighbors: list[tuple[int, int]] = []

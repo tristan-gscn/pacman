@@ -23,6 +23,11 @@ class App:
     _KEY_BACKSPACE = 65288
 
     def __init__(self, config_path: str = "config.json") -> None:
+        """Initialize the application.
+
+        Args:
+            config_path (str): Path to the JSON configuration file.
+        """
         self.config_path = config_path
         try:
             self.config: Configuration = ConfigParser().parse(self.config_path)
@@ -46,6 +51,11 @@ class App:
                                            self.config.height))
 
     def run(self) -> None:
+        """Initialize and start the game engine and renderer.
+
+        This method generates the initial maze, sets up the game engine,
+        and starts the global renderer with necessary callbacks.
+        """
         try:
             self.mazegen.generate()
             path_finder: FindPath = FindPath(self.mazegen.maze)
@@ -67,12 +77,27 @@ class App:
             print(f"Renderer initialization skipped: {e}")
 
     def get_ui_mode(self) -> UIMode:
+        """Get the current UI mode.
+
+        Returns:
+            UIMode: The current UI mode of the application.
+        """
         return self.ui_mode
 
     def set_ui_mode(self, ui_mode: UIMode) -> None:
+        """Set the current UI mode.
+
+        Args:
+            ui_mode (UIMode): The new UI mode to set.
+        """
         self.ui_mode = ui_mode
 
     def get_current_input(self) -> str:
+        """Get the current user input string.
+
+        Returns:
+            str: The current string input by the user.
+        """
         return self.current_input
 
     def _on_key_press(self, keycode: int) -> None:
@@ -107,6 +132,11 @@ class App:
             self.game_engine.on_key_press(keycode)
 
     def _handle_main_menu_key(self, keycode: int) -> None:
+        """Handle key presses specifically for the main menu.
+
+        Args:
+            keycode (int): MLX key code for the pressed key.
+        """
         if keycode == self._KEY_ENTER:
             self.current_input = ""
             self.game_states.score = 0
@@ -129,6 +159,13 @@ class App:
             self._exit_app()
 
     def _handle_lose_victory_key(self, keycode: int) -> None:
+        """Handle key presses for game over and victory screens.
+
+        Allows the user to type their name and save high scores.
+
+        Args:
+            keycode (int): MLX key code for the pressed key.
+        """
         if keycode == self._KEY_ENTER:
             if not self.current_input.strip():
                 return
@@ -194,6 +231,7 @@ class App:
             self.current_input += chr(keycode).upper()
 
     def _exit_app(self) -> None:
+        """Close the renderer and exit the application."""
         if self.renderer is not None:
             self.renderer.close()
         # Using a proper exit or returning to let the loop end is cleaner
@@ -213,7 +251,10 @@ class App:
             self.game_engine.on_key_release(keycode)
 
     def _on_update(self, dt: float = 0.0) -> None:
-        """Move the player continuously based on current input state.
+        """Update game logic on each frame.
+
+        Args:
+            dt (float): Delta time since the last update. Defaults to 0.0.
         """
         if self.game_engine is None:
             return

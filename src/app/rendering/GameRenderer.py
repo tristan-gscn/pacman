@@ -60,6 +60,11 @@ class GameRenderer:
         )
 
     def render_pacgums(self, pacgums: list[PacGum]) -> None:
+        """Render all normal pacgums in the maze.
+
+        Args:
+            pacgums (list[PacGum]): List of pacgums to render.
+        """
         for pacgum in pacgums:
             self.draw_pacgum_at(int(round(pacgum.x)), int(round(pacgum.y)))
 
@@ -68,6 +73,12 @@ class GameRenderer:
         super_pacgums: list[SuperPacGum],
         visible: bool
     ) -> None:
+        """Render all super pacgums if they are currently visible (flashing).
+
+        Args:
+            super_pacgums (list[SuperPacGum]): List of super pacgums.
+            visible (bool): Whether the super pacgums should be drawn.
+        """
         if not visible:
             return
         for spg in super_pacgums:
@@ -82,6 +93,16 @@ class GameRenderer:
         has_super_pacgum: bool = False,
         super_visible: bool = True
     ) -> None:
+        """Redraw a specific cell background and any contained pacgums.
+
+        Args:
+            maze (list[list[int]]): The maze grid.
+            cell_x (int): Maze x-coordinate.
+            cell_y (int): Maze y-coordinate.
+            has_pacgum (bool): Whether the cell contains a normal pacgum.
+            has_super_pacgum (bool): Whether the cell contains a super pacgum.
+            super_visible (bool): Whether super pacgums are currently visible.
+        """
         self.draw_cell_background(maze, cell_x, cell_y)
         if has_pacgum:
             self.draw_pacgum_at(cell_x, cell_y)
@@ -94,6 +115,13 @@ class GameRenderer:
         cell_x: int,
         cell_y: int
     ) -> None:
+        """Draw the background (black and walls) for a single cell.
+
+        Args:
+            maze (list[list[int]]): The maze grid.
+            cell_x (int): Maze x-coordinate.
+            cell_y (int): Maze y-coordinate.
+        """
         cell = maze[cell_y][cell_x]
         pixel_put = partial(self.mlx.mlx_pixel_put, self.mlx_ptr, self.win_ptr)
         cell_px = cell_x * self.cell_size + self.offset_x
@@ -112,6 +140,12 @@ class GameRenderer:
         )
 
     def draw_pacgum_at(self, cell_x: int, cell_y: int) -> None:
+        """Draw a normal pacgum at the specified maze coordinate.
+
+        Args:
+            cell_x (int): Maze x-coordinate.
+            cell_y (int): Maze y-coordinate.
+        """
         radius = max(self.cell_size // 12, 1)
         pixel_put = self.mlx.mlx_pixel_put
         half_cell = self.cell_size / 2.0
@@ -135,6 +169,12 @@ class GameRenderer:
                 )
 
     def draw_super_pacgum_at(self, cell_x: int, cell_y: int) -> None:
+        """Draw a super pacgum at the specified maze coordinate.
+
+        Args:
+            cell_x (int): Maze x-coordinate.
+            cell_y (int): Maze y-coordinate.
+        """
         radius = max(self.cell_size // 6, 2)
         pixel_put = self.mlx.mlx_pixel_put
         half_cell = self.cell_size / 2.0

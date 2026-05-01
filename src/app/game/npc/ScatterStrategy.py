@@ -9,7 +9,15 @@ if TYPE_CHECKING:
 
 
 class ScatterStrategy(NPCStrategy):
+    """Strategy where NPCs chase the player but scatter when too close."""
+
     def __init__(self, flee_radius: int = 4) -> None:
+        """Initialize the scatter strategy.
+
+        Args:
+            flee_radius (int): The distance at which the NPC starts scattering.
+                Defaults to 4.
+        """
         self.flee = False
         self.flee_target: tuple[int, int] | None = None
         self.flee_radius = flee_radius
@@ -17,9 +25,26 @@ class ScatterStrategy(NPCStrategy):
         self.npc: NPC | None = None
 
     def set_npc(self, npc: NPC) -> None:
+        """Set the NPC instance using this strategy.
+
+        Args:
+            npc (NPC): The NPC instance.
+        """
         self.npc = npc
 
     def act(self, grid: list[list[int]], player: Player) -> tuple[int, int]:
+        """Determine target based on distance to player.
+
+        Chases the player unless they are within flee_radius, in which case
+        it chooses a flee target.
+
+        Args:
+            grid (list[list[int]]): The maze grid.
+            player (Player): The player instance.
+
+        Returns:
+            tuple[int, int]: The target (row, col) coordinate.
+        """
         if self.npc is not None:
             self.npc_pos = (int(round(self.npc.y)), int(round(self.npc.x)))
 

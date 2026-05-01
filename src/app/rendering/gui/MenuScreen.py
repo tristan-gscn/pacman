@@ -9,6 +9,11 @@ from src.models import Color
 class MenuScreen(BaseScreen):
 
     def __init__(self, file: str) -> None:
+        """Initialize the main menu screen.
+
+        Args:
+            file (str): Path to the high scores file.
+        """
         self._logo_ptr: int | None = None
         self._logo_width = 0
         self._logo_height = 0
@@ -20,6 +25,15 @@ class MenuScreen(BaseScreen):
 
     def render(self, mlx: Mlx, mlx_ptr: int, win_ptr: int, win_width: int,
                win_height: int) -> None:
+        """Render the main menu with logo and navigation options.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
 
         self._ensure_logo_loaded(mlx, mlx_ptr)
         if self._logo_ptr is not None:
@@ -40,6 +54,12 @@ class MenuScreen(BaseScreen):
             text_y += 34
 
     def _ensure_logo_loaded(self, mlx: Mlx, mlx_ptr: int) -> None:
+        """Load the game logo PNG if not already cached.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+        """
         if self._logo_ptr is not None:
             return
         logo_path = Path(

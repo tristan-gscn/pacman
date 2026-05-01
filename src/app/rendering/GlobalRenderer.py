@@ -234,6 +234,11 @@ class GlobalRenderer:
         self._render_game_frame(update_state=True)
 
     def _render_game_frame(self, update_state: bool) -> None:
+        """Render the current game frame and handle incremental updates.
+
+        Args:
+            update_state (bool): Whether to advance game state and animation.
+        """
         now = time.monotonic()
 
         if self.mazegen.maze != self.old_maze:
@@ -288,6 +293,7 @@ class GlobalRenderer:
         self._cache_frame_state()
 
     def _update_hud_layout(self) -> None:
+        """Update HUD layout based on current maze dimensions and check game over conditions."""
         maze_width = 0
         maze_height = 0
         if self.mazegen.maze:
@@ -303,6 +309,11 @@ class GlobalRenderer:
                 self._ui_mode_setter(UIMode.GAME_OVER)
 
     def _render_hud(self, force: bool) -> None:
+        """Render the HUD overlay, optionally forcing a redraw.
+
+        Args:
+            force (bool): If True, render regardless of dirty state.
+        """
         if not force and not self._hud_dirty:
             return
         for rect in self._hud.get_hud_rects(self.win_width, self.win_height):
@@ -314,6 +325,15 @@ class GlobalRenderer:
 
     def _fill_rect(self, x: int, y: int, width: int, height: int,
                    color: int) -> None:
+        """Fill a rectangular region with a solid color.
+
+        Args:
+            x (int): Left pixel coordinate.
+            y (int): Top pixel coordinate.
+            width (int): Rectangle width in pixels.
+            height (int): Rectangle height in pixels.
+            color (int): RGBA color to fill with.
+        """
         if width <= 0 or height <= 0:
             return
         pixel_put = self.mlx.mlx_pixel_put
@@ -324,6 +344,7 @@ class GlobalRenderer:
                 pixel_put(self.mlx_ptr, self.win_ptr, px, py, color)
 
     def _render_incremental(self) -> None:
+        """Perform incremental rendering by redrawing only changed maze cells."""
         current_pacgum_cells = {(int(round(pacgum.x)), int(round(pacgum.y)))
                                 for pacgum in self.game_engine.pacgums}
         current_super_cells = {(int(round(spg.x)), int(round(spg.y)))
@@ -358,6 +379,7 @@ class GlobalRenderer:
             self.game_renderer.draw_pacgum_at(cell_x, cell_y)
 
     def _render_sprites(self) -> None:
+        """Render all NPC and player sprites at their current positions."""
         for name, npc in self.game_engine.npcs.items():
             frames = self.npc_frames.get(name, [])
             if npc.is_fleeing:
@@ -380,6 +402,7 @@ class GlobalRenderer:
                                                  self.game_renderer.offset_y)
 
     def _cache_frame_state(self) -> None:
+        """Cache current actor positions and pacgum cells for incremental rendering."""
         self._prev_actor_positions = {
             "player": (self.game_engine.player.x, self.game_engine.player.y)
         }
@@ -393,6 +416,15 @@ class GlobalRenderer:
 
     def _covered_cells(self, grid_x: float,
                        grid_y: float) -> set[tuple[int, int]]:
+        """Get the set of maze cells covered by an actor at grid coordinates.
+
+        Args:
+            grid_x (float): Actor x position in grid coordinates.
+            grid_y (float): Actor y position in grid coordinates.
+
+        Returns:
+            set[tuple[int, int]]: Set of (cell_x, cell_y) tuples.
+        """
         min_x = int(math.floor(grid_x))
         min_y = int(math.floor(grid_y))
         max_x = int(math.floor(grid_x + 0.9999))
@@ -402,6 +434,15 @@ class GlobalRenderer:
                 for cell_y in range(min_y, max_y + 1)}
 
     def _is_valid_cell(self, cell_x: int, cell_y: int) -> bool:
+        """Check if a cell coordinate is within the maze bounds.
+
+        Args:
+            cell_x (int): Cell x-coordinate.
+            cell_y (int): Cell y-coordinate.
+
+        Returns:
+            bool: True if the cell is within bounds.
+        """
         if not self.mazegen.maze:
             return False
         return 0 <= cell_y < len(self.mazegen.maze) and \

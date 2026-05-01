@@ -19,7 +19,7 @@ class HighscoresScreen(BaseScreen):
         title = "HIGHSCORES"
         hint = "Press ESC to return"
 
-        title_x = max((win_width // 2) - (len(title) * 6), 0)
+        title_x = max((win_width // 2) - (len(title) * 5), 0)
         title_y = 50
         hint_x = max((win_width // 2) - (len(hint) * 5), 0)
         hint_y = win_height - 50
@@ -43,7 +43,7 @@ class HighscoresScreen(BaseScreen):
                 
                 start_y = title_y + 60
                 for i, (name, score) in enumerate(sorted_scores[:10]):
-                    text = f"{i+1}. {str(name).upper()}: {score}"
+                    text = f"{i+1:2d}. {str(name).upper():10s}: {score:d}"
                     x = max((win_width // 2) - (len(text) * 5), 0)
                     y = start_y + i * 30
                     mlx.mlx_string_put(mlx_ptr, win_ptr, x, y, Color.WHITE, text)

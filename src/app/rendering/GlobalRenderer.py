@@ -160,6 +160,7 @@ class GlobalRenderer:
         self.frame_index = 0
         self.last_frame_time = time.monotonic()
         self.last_update_time = self.last_frame_time
+        self._last_highscore_refresh = 0.0
 
         self.is_player_dead = False
 
@@ -206,6 +207,15 @@ class GlobalRenderer:
                 self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
                 screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
                               self.win_width, self.win_height)
+
+            if ui_mode == UIMode.HIGHSCORES:
+                now = time.monotonic()
+                if now - self._last_highscore_refresh >= 0.1:
+                    self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                    for _ in range(2):
+                        screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
+                                      self.win_width, self.win_height)
+                    self._last_highscore_refresh = now
             return
 
         if ui_mode == UIMode.IN_GAME and ui_mode != self._last_ui_mode:

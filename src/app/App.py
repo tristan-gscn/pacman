@@ -147,22 +147,38 @@ class App:
                                     "Don't touch the saves datas please!")
                             scores_dict[name] = score
 
-                new_name = self.current_input.upper()
+                new_name = self.current_input.upper().strip()
                 new_score = self.game_states.score
 
-                if new_name in scores_dict:
-                    if new_score > scores_dict[new_name]:
-                        scores_dict[new_name] = new_score
+                # Load existing scores and sort them to find the 10th score
+                existing_scores = sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
+                
+                can_save = False
+                if len(existing_scores) < 10:
+                    can_save = True
                 else:
-                    scores_dict[new_name] = new_score
+                    # Check if the new score is strictly better than the 10th one
+                    # or if the user is already in the top 10 and improves their score
+                    tenth_score = existing_scores[9][1]
+                    if new_score > tenth_score:
+                        can_save = True
+                    elif new_name in scores_dict and new_score > scores_dict[new_name]:
+                        can_save = True
 
-                # Sort by score descending and take top 10
-                sorted_scores = sorted(scores_dict.items(),
-                                       key=lambda x: x[1],
-                                       reverse=True)[:10]
-                scores_dict = dict(sorted_scores)
-                with open(self.config.highscore_filename, "w") as f:
-                    f.write(json.dumps(scores_dict, indent=2))
+                if can_save:
+                    if new_name in scores_dict:
+                        if new_score > scores_dict[new_name]:
+                            scores_dict[new_name] = new_score
+                    else:
+                        scores_dict[new_name] = new_score
+
+                    # Sort by score descending and take top 10
+                    sorted_scores = sorted(scores_dict.items(),
+                                           key=lambda x: x[1],
+                                           reverse=True)[:10]
+                    scores_dict = dict(sorted_scores)
+                    with open(self.config.highscore_filename, "w") as f:
+                        f.write(json.dumps(scores_dict, indent=2))
             except Exception as e:
                 print(e)  # TODO Improving the message displayed
             self.ui_mode = UIMode.MAIN_MENU

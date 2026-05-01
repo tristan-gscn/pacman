@@ -21,6 +21,24 @@ class App:
     _KEY_SHIFT_RIGHT = 65506
     _KEY_ESCAPE = 65307
     _KEY_BACKSPACE = 65288
+    _KEY_KP_0 = 65456
+    _KEY_KP_1 = 65457
+    _KEY_KP_2 = 65458
+    _KEY_KP_3 = 65459
+    _KEY_KP_4 = 65460
+    _KEY_KP_5 = 65461
+    _KEY_KP_6 = 65462
+    _KEY_KP_7 = 65463
+    _KEY_KP_8 = 65464
+    _KEY_KP_9 = 65465
+    _KEY_KP_PERIOD = 65454
+
+    _KP_TO_CHAR = {
+        _KEY_KP_0: "0", _KEY_KP_1: "1", _KEY_KP_2: "2",
+        _KEY_KP_3: "3", _KEY_KP_4: "4", _KEY_KP_5: "5",
+        _KEY_KP_6: "6", _KEY_KP_7: "7", _KEY_KP_8: "8",
+        _KEY_KP_9: "9", _KEY_KP_PERIOD: ".",
+    }
     _KEY_UP = 65362
     _KEY_DOWN = 65364
     _KEY_LEFT = 65361
@@ -247,6 +265,10 @@ class App:
             return
         if keycode == self._KEY_BACKSPACE:
             self.current_input = self.current_input[:-1]
+            return
+        kp_char = self._KP_TO_CHAR.get(keycode)
+        if kp_char is not None and len(self.current_input) < 10:
+            self.current_input += kp_char
             return
         if 32 <= keycode <= 126 and len(self.current_input) < 10:
             self.current_input += chr(keycode).upper()

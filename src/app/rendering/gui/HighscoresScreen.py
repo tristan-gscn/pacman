@@ -62,18 +62,19 @@ class HighscoresScreen(BaseScreen):
                 )
 
                 start_y = title_y + 60
-                for i, (name, score) in enumerate(sorted_scores[:10]):
-                    text = f"{i+1:2d}. {str(name).upper():10s}: {score:d}"
-                    x = max((win_width // 2) - (len(text) * 5), 0)
-                    y = start_y + i * 30
-                    mlx.mlx_string_put(
-                        mlx_ptr,
-                        win_ptr,
-                        x,
-                        y,
-                        Color.WHITE,
-                        text
-                    )
+                for _ in range(3):
+                    for i, (name, score) in enumerate(sorted_scores[:10]):
+                        text = f"{i+1:2d}. {str(name).upper():10s}: {score:d}"
+                        x = max((win_width // 2) - (len(text) * 5), 0)
+                        y = start_y + i * 30
+                        mlx.mlx_string_put(
+                            mlx_ptr,
+                            win_ptr,
+                            x,
+                            y,
+                            Color.WHITE,
+                            text
+                        )
             except Exception:
                 pass
 

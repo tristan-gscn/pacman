@@ -7,12 +7,6 @@ run:
 debug:
 	uv run python -m pdb -m src
 
-clean:
-	find src -type d -name "__pycache__" -exec rm -r {} +
-	find src -type d -name ".mypy_cache" -exec rm -r {} +
-	rm -rf .venv
-	rm -rf .pytest_cache
-
 lint:
 	uv run python -m flake8 src
 	uv run python -m mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
@@ -21,7 +15,16 @@ lint-strict:
 	uv run python -m flake8 src
 	uv run python -m mypy src --strict
 
-test:
-	uv run python -m pytest src/testing/ -v
+package:
+	rm -rf build dist
+	uv run pyinstaller pacman.spec --noconfirm
 
-.PHONY: install run debug clean lint lint-strict test
+clean:
+	find src -type d -name "__pycache__" -exec rm -r {} +
+	find src -type d -name ".mypy_cache" -exec rm -r {} +
+	rm -rf .venv
+	rm -rf .pytest_cache
+	rm -rf build dist
+	rm -f pacman.spec.bak
+
+.PHONY: install run debug clean lint lint-strict test package

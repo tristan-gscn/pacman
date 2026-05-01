@@ -10,6 +10,7 @@ from src.models import UIMode
 from src.models.Configuration import Configuration
 from src.models.GameStates import GameStates
 from src.app.game.FindPath import FindPath
+from src.models.resources import get_resource_path
 
 
 class App:
@@ -34,13 +35,21 @@ class App:
         _KEY_B, _KEY_A, _KEY_ENTER,
     ]
 
-    def __init__(self, config_path: str = "config.json") -> None:
+    def __init__(
+        self,
+        config_path: str | None = None
+    ) -> None:
         """Initialize the application.
 
         Args:
-            config_path (str): Path to the JSON configuration file.
+            config_path (str | None): Path to the JSON configuration file.
+                Defaults to the bundled config.json.
         """
-        self.config_path = config_path
+        self.config_path = (
+            str(get_resource_path("config.json"))
+            if config_path is None
+            else config_path
+        )
         try:
             self.config: Configuration = ConfigParser().parse(self.config_path)
         except Exception as e:
@@ -138,8 +147,6 @@ class App:
                   and self.game_engine is not None
                   and self.game_engine.cheat_mode):
                 self.advance_level()
-                if self.ui_mode != UIMode.VICTORY:
-                    self.ui_mode = UIMode.IN_GAME
             return
         if self.ui_mode != UIMode.IN_GAME:
             return
@@ -278,6 +285,7 @@ class App:
         self.game_engine._generate_pacgums()
         self.game_states.time_remaining = self.config.level_max_time
         self.game_states.level += 1
+        self.ui_mode = UIMode.IN_GAME
 
     def _exit_app(self) -> None:
         """Close the renderer and exit the application."""

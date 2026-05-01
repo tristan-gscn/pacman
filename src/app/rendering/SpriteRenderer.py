@@ -1,5 +1,6 @@
 from pathlib import Path
 from mlx import Mlx
+from src.models.resources import get_resource_path
 
 
 class SpriteRenderer:
@@ -149,7 +150,7 @@ class SpriteRenderer:
         Returns:
             Path: Absolute path to the sprite file.
         """
-        base_dir = Path(__file__).resolve().parents[3] / "assets"
+        base_dir = get_resource_path("assets")
         candidate = base_dir / sprite_path
         if candidate.exists():
             return candidate

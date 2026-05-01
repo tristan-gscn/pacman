@@ -348,8 +348,14 @@ class GlobalRenderer:
     def _render_sprites(self) -> None:
         for name, npc in self.game_engine.npcs.items():
             frames = self.npc_frames.get(name, [])
-            if getattr(self.game_engine, "global_flee", False):
+            if npc.is_fleeing:
                 frames = self.npc_fear_frames
+            
+            # Hide ghost if it's respawning
+            import time
+            if time.monotonic() < npc.respawn_time:
+                continue
+
             self.sprite_renderer.render_sprite_frame(
                 npc.x, npc.y, frames, self.frame_index,
                 self.game_renderer.offset_x, self.game_renderer.offset_y)

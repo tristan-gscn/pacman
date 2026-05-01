@@ -208,8 +208,13 @@ class GlobalRenderer:
                 else:
                     self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
                 if screen is not None:
-                    screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
-                                  self.win_width, self.win_height)
+                    if ui_mode == UIMode.PAUSE_MENU:
+                        screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
+                                      self.win_width, self.win_height,
+                                      self.game_engine.cheat_mode)
+                    else:
+                        screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
+                                      self.win_width, self.win_height)
                 self._last_ui_mode = ui_mode
 
             if ui_mode in (UIMode.VICTORY, UIMode.GAME_OVER):
@@ -396,7 +401,8 @@ class GlobalRenderer:
             else:
                 direction = getattr(npc, "direction", "right")
                 frames_dict = self.npc_frames.get(name, {})
-                frames = frames_dict.get(direction, frames_dict.get("right", []))
+                frames = frames_dict.get(
+                    direction, frames_dict.get("right", []))
 
             # Hide ghost if it's respawning
             if time.monotonic() < npc.respawn_time:

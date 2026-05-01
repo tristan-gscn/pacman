@@ -11,7 +11,8 @@ class PauseMenuScreen(BaseScreen):
         mlx_ptr: int,
         win_ptr: int,
         win_width: int,
-        win_height: int
+        win_height: int,
+        cheat_mode: bool = False
     ) -> None:
         """Render the pause menu overlay with resume and exit options.
 
@@ -21,9 +22,10 @@ class PauseMenuScreen(BaseScreen):
             win_ptr (int): Pointer to the MLX window.
             win_width (int): Window width in pixels.
             win_height (int): Window height in pixels.
+            cheat_mode (bool): Whether cheat mode is active.
         """
         box_width = 300
-        box_height = 170
+        box_height = 170 if not cheat_mode else 200
         box_x = max((win_width - box_width) // 2, 0)
         box_y = max((win_height - box_height) // 2, 0)
 
@@ -51,6 +53,7 @@ class PauseMenuScreen(BaseScreen):
         title = "PAUSE"
         line1 = "Resume (ENTER)"
         line2 = "Exit (ESC)"
+        line3 = "Next Level (SPACE)"
 
         title_x = max(box_x + (box_width // 2) - (len(title) * 6), box_x + 10)
         title_y = box_y + 30
@@ -83,6 +86,21 @@ class PauseMenuScreen(BaseScreen):
             Color.WHITE,
             line2
         )
+
+        if cheat_mode:
+            line3_x = max(
+                box_x + (box_width // 2) - (len(line3) * 5),
+                box_x + 10
+            )
+            line3_y = line2_y + 30
+            mlx.mlx_string_put(
+                mlx_ptr,
+                win_ptr,
+                line3_x,
+                line3_y,
+                Color.WHITE,
+                line3
+            )
 
     def _draw_filled_rect(
         self,

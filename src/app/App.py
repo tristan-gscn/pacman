@@ -21,6 +21,18 @@ class App:
     _KEY_SHIFT_RIGHT = 65506
     _KEY_ESCAPE = 65307
     _KEY_BACKSPACE = 65288
+    _KEY_UP = 65362
+    _KEY_DOWN = 65364
+    _KEY_LEFT = 65361
+    _KEY_RIGHT = 65363
+    _KEY_B = 98
+    _KEY_A = 97
+
+    _KONAMI_CODE = [
+        _KEY_UP, _KEY_UP, _KEY_DOWN, _KEY_DOWN,
+        _KEY_LEFT, _KEY_RIGHT, _KEY_LEFT, _KEY_RIGHT,
+        _KEY_B, _KEY_A, _KEY_ENTER,
+    ]
 
     def __init__(self, config_path: str = "config.json") -> None:
         """Initialize the application.
@@ -49,6 +61,7 @@ class App:
         self.ui_mode = UIMode.MAIN_MENU
         self.mazegen = MazeGenerator(size=(self.config.width,
                                            self.config.height))
+        self._konami_buffer: list[int] = []
 
     def run(self) -> None:
         """Initialize and start the game engine and renderer.
@@ -121,12 +134,19 @@ class App:
                 self.ui_mode = UIMode.IN_GAME
             elif keycode == self._KEY_ESCAPE:
                 self.ui_mode = UIMode.MAIN_MENU
+            elif (keycode == self._KEY_SPACE
+                  and self.game_engine is not None
+                  and self.game_engine.cheat_mode):
+                self.advance_level()
+                if self.ui_mode != UIMode.VICTORY:
+                    self.ui_mode = UIMode.IN_GAME
             return
         if self.ui_mode != UIMode.IN_GAME:
             return
         if keycode == self._KEY_ESCAPE:
             self.ui_mode = UIMode.PAUSE_MENU
             return
+        self._check_konami_code(keycode)
         if self.game_engine is not None and \
            self.game_engine.player.direction != "death":
             self.game_engine.on_key_press(keycode)
@@ -229,6 +249,35 @@ class App:
             return
         if 32 <= keycode <= 126 and len(self.current_input) < 10:
             self.current_input += chr(keycode).upper()
+
+    def _check_konami_code(self, keycode: int) -> None:
+        """Check if the Konami code sequence has been entered.
+
+        Toggles cheat mode when the full sequence is detected.
+
+        Args:
+            keycode (int): MLX key code for the pressed key.
+        """
+        self._konami_buffer.append(keycode)
+        if len(self._konami_buffer) > len(self._KONAMI_CODE):
+            self._konami_buffer.pop(0)
+        if self._konami_buffer == self._KONAMI_CODE:
+            if self.game_engine is not None:
+                self.game_engine.toggle_cheat_mode()
+            self._konami_buffer.clear()
+
+    def advance_level(self) -> None:
+        """Advance to the next level."""
+        if self.game_engine is None:
+            return
+        if self.game_states.level >= self.config.levels_to_generate:
+            self.ui_mode = UIMode.VICTORY
+            return
+        self.mazegen.generate()
+        self.game_engine.rebirth()
+        self.game_engine._generate_pacgums()
+        self.game_states.time_remaining = self.config.level_max_time
+        self.game_states.level += 1
 
     def _exit_app(self) -> None:
         """Close the renderer and exit the application."""

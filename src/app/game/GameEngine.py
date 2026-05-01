@@ -37,6 +37,7 @@ class GameEngine:
         self.move_speed = 40 / 320
         self.ghost_speed_factor = 0.7
         self.global_flee = False
+        self.cheat_mode = False
         self.game_states: GameStates = game_states
         self._mazegen: MazeGenerator = mazegen
         self._key_to_direction: dict[int, str] = {
@@ -104,6 +105,13 @@ class GameEngine:
             else:
                 npc.set_strategy(npc.base_strategy)
             npc.path = []
+
+    def toggle_cheat_mode(self) -> None:
+        """Toggle the cheat mode on or off.
+
+        When active, ghosts stop moving and the player becomes invincible.
+        """
+        self.cheat_mode = not self.cheat_mode
 
     def _attach_engine(self) -> None:
         """Attach this game engine instance to all actors (player and NPCs)."""
@@ -243,6 +251,8 @@ class GameEngine:
 
     def update_ghosts(self) -> None:
         """Update all NPCs logic, movement, and check for collisions."""
+        if self.cheat_mode:
+            return
         import time
         current_time = time.monotonic()
         for ghost in self.npcs.values():
@@ -350,6 +360,8 @@ class GameEngine:
     def collisions(self) -> None:
         """Check for collisions between the player and ghosts."""
         import time
+        if self.cheat_mode:
+            return
         if self.player.direction != "death":
             px: float = self.player.x
             py: float = self.player.y

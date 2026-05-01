@@ -59,6 +59,7 @@ class App:
                 update_callback=self._on_update,
                 ui_mode_provider=self.get_ui_mode,
                 ui_mode_setter=self.set_ui_mode,
+                input_provider=self.get_current_input,
             )
         except RuntimeError as e:
             print(f"Renderer initialization skipped: {e}")
@@ -68,6 +69,9 @@ class App:
 
     def set_ui_mode(self, ui_mode: UIMode) -> None:
         self.ui_mode = ui_mode
+
+    def get_current_input(self) -> str:
+        return self.current_input
 
     def _on_key_press(self, keycode: int) -> None:
         """Handle key press events to update movement direction.
@@ -107,6 +111,10 @@ class App:
             self.game_states.level = 1
             self.game_states.time_remaining = self.config.level_max_time
             self.game_states.current_lives = self.config.lives
+            if self.game_engine is not None:
+                self.mazegen.generate()
+                self.game_engine.rebirth()
+                self.game_engine._generate_pacgums()
             self.ui_mode = UIMode.IN_GAME
             return
         if keycode == self._KEY_SPACE:
@@ -120,6 +128,8 @@ class App:
 
     def _handle_lose_victory_key(self, keycode: int) -> None:
         if keycode == self._KEY_ENTER:
+            if not self.current_input.strip():
+                return
             if "/" in self.config.highscore_filename:
                 index: int = self.config.highscore_filename.rfind("/") + 1
                 os.makedirs(self.config.highscore_filename[:index],
@@ -137,8 +147,20 @@ class App:
                                     "Don't touch the saves datas please!")
                             scores_dict[name] = score
 
-                scores_dict[self.current_input] = self.game_states.score
-                sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
+                new_name = self.current_input.upper()
+                new_score = self.game_states.score
+
+                if new_name in scores_dict:
+                    if new_score > scores_dict[new_name]:
+                        scores_dict[new_name] = new_score
+                else:
+                    scores_dict[new_name] = new_score
+
+                # Sort by score descending and take top 10
+                sorted_scores = sorted(scores_dict.items(),
+                                       key=lambda x: x[1],
+                                       reverse=True)[:10]
+                scores_dict = dict(sorted_scores)
                 with open(self.config.highscore_filename, "w") as f:
                     f.write(json.dumps(scores_dict, indent=2))
             except Exception as e:
@@ -149,7 +171,7 @@ class App:
             self.current_input = self.current_input[:-1]
             return
         if 32 <= keycode <= 126 and len(self.current_input) < 10:
-            self.current_input += chr(keycode)
+            self.current_input += chr(keycode).upper()
 
     def _exit_app(self) -> None:
         if self.renderer is not None:

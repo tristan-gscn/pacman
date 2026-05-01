@@ -10,7 +10,7 @@ class VictoryScreen(BaseScreen):
         self.message = "GG, you won!"
         self.score_text = f"Final Score: {score}"
         self.prompt_title = "Enter your name:"
-        self.prompt_hint = name
+        self.name = name
 
     def render(
         self,
@@ -29,7 +29,7 @@ class VictoryScreen(BaseScreen):
         score_y = message_y + 40
         prompt_title_x = max((win_width // 2) - (len(self.prompt_title) * 5), 0)
         prompt_title_y = score_y + 50
-        prompt_hint_x = max((win_width // 2) - (len(self.prompt_hint) * 4), 0)
+        prompt_hint_x = max((win_width // 2) - (len(self.name) * 4), 0)
         prompt_hint_y = prompt_title_y + 30
 
         mlx.mlx_string_put(
@@ -70,5 +70,5 @@ class VictoryScreen(BaseScreen):
             prompt_hint_x,
             prompt_hint_y,
             Color.YELLOW,
-            self.prompt_hint
+            self.name
         )

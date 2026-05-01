@@ -44,7 +44,8 @@ class GlobalRenderer:
                  key_release_callback: Callable[[int], None] | None = None,
                  update_callback: Callable[[float], None] | None = None,
                  ui_mode_provider: Callable[[], UIMode] | None = None,
-                 ui_mode_setter: Callable[[], UIMode] | None = None) -> None:
+                 ui_mode_setter: Callable[[UIMode], None] | None = None,
+                 input_provider: Callable[[], str] | None = None) -> None:
         """Create the window and start the MLX render loop.
 
         Args:
@@ -96,6 +97,7 @@ class GlobalRenderer:
         self._update_callback = update_callback
         self._ui_mode_provider = ui_mode_provider
         self._ui_mode_setter = ui_mode_setter
+        self._input_provider = input_provider
         self._last_ui_mode: UIMode | None = None
         self._needs_full_redraw = True
         self._hud_dirty = True
@@ -112,9 +114,10 @@ class GlobalRenderer:
             UIMode.VICTORY: VictoryScreen(
                 score=game_engine.game_states.score,
                 name=current_input),
-            UIMode.HIGHSCORES: HighscoresScreen(),
+            UIMode.HIGHSCORES: HighscoresScreen(file),
             UIMode.INSTRUCTIONS: InstructionsScreen(),
         }
+        self._highscore_file = file
         self._hud = InGameHud(self.game_engine.game_states)
         self.game_renderer = GameRenderer(self.mlx,
                                           self.mlx_ptr,
@@ -197,10 +200,12 @@ class GlobalRenderer:
                 self._last_ui_mode = ui_mode
 
             if ui_mode in (UIMode.VICTORY, UIMode.GAME_OVER):
-                if screen.name != self.current_input:
-                    self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
-                    screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
-                                  self.win_width, self.win_height)
+                if self._input_provider is not None:
+                    self.current_input = self._input_provider()
+                screen.name = self.current_input
+                self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
+                screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
+                              self.win_width, self.win_height)
             return
 
         if ui_mode == UIMode.IN_GAME and ui_mode != self._last_ui_mode:
@@ -391,6 +396,13 @@ class GlobalRenderer:
         """
         if self._key_press_callback is not None:
             self._key_press_callback(keycode)
+
+        # Trigger immediate redraw for GameOver and Victory screens
+        ui_mode = None
+        if self._ui_mode_provider is not None:
+            ui_mode = self._ui_mode_provider()
+        if ui_mode in (UIMode.VICTORY, UIMode.GAME_OVER):
+            self.render_next_frame(None)
 
     def _handle_key_release(self,
                             keycode: int,

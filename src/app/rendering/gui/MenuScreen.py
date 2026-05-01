@@ -17,15 +17,12 @@ class MenuScreen(BaseScreen):
         self.highscores_file: str = file
         self.text_lines = [
             "Start (ENTER)", "Highscores (SPACE)", "Instructions (SHIFT)",
-            "Exit (ESC)", "Scores to beat:"
+            "Exit (ESC)"
         ]
-        self.text_score: list[str] = []
 
     def render(self, mlx: Mlx, mlx_ptr: int, win_ptr: int, win_width: int,
                win_height: int) -> None:
 
-        self.get_scores()
-        final_text: list[str] = self.text_lines + self.text_score
         self._ensure_logo_loaded(mlx, mlx_ptr)
         if self._logo_ptr is not None:
             logo_x = max((win_width - self._logo_width) // 2, 0)
@@ -38,7 +35,7 @@ class MenuScreen(BaseScreen):
         else:
             text_y = max((win_height // 2) - 20, 0)
 
-        for line in final_text:
+        for line in self.text_lines:
             line_x = max((win_width // 2) - (len(line) * 5), 0)
             mlx.mlx_string_put(mlx_ptr, win_ptr, line_x, text_y, Color.WHITE,
                                line)
@@ -55,19 +52,3 @@ class MenuScreen(BaseScreen):
             self._logo_ptr = img_ptr
             self._logo_width = width
             self._logo_height = height
-
-    def get_scores(self) -> None:
-        self.text_score = []
-        if not os.path.exists(self.highscores_file):
-            self.text_score.append(
-                "No score registered yet. Be the first one!")
-            return
-        try:
-            with open(self.highscores_file, "r") as f:
-                scores_dict: dict[str, int] = json.load(f)
-                for name, score in scores_dict.items():
-                    if not isinstance(name, str) or not isinstance(score, int):
-                        raise ValueError("Don't touch the saves datas please!")
-                    self.text_score.append(f"{name}: {score}")
-        except Exception as e:
-            print(e)  # TODO Improving the message displayed

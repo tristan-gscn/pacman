@@ -21,7 +21,8 @@ class FindPath:
         """Initialize the pathfinder with a maze.
 
         Args:
-            maze (list[list[int]]): The maze represented as a 2D grid of integers.
+            maze (list[list[int]]): The maze represented as a 2D grid of
+                integers.
         """
         self.maze = maze
 

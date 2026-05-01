@@ -2,9 +2,11 @@ from typing import Callable
 import math
 import time
 
-from mazegenerator.mazegenerator import MazeGenerator
+from mazegenerator.mazegenerator import (
+    MazeGenerator,
+)
 from typing import Any
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 from src.app.game.GameEngine import GameEngine
 from src.models import UIMode, Color
 # from src.models.GameStates import GameStates
@@ -188,6 +190,8 @@ class GlobalRenderer:
 
         if ui_mode is not None and ui_mode != UIMode.IN_GAME:
             screen = self._gui_screens.get(ui_mode)
+            if screen is None:
+                return
 
             if ui_mode != self._last_ui_mode:
                 if ui_mode == UIMode.PAUSE_MENU:
@@ -203,7 +207,10 @@ class GlobalRenderer:
             if ui_mode in (UIMode.VICTORY, UIMode.GAME_OVER):
                 if self._input_provider is not None:
                     self.current_input = self._input_provider()
-                screen.name = self.current_input
+                # We already checked screen is not None above
+                from .gui import VictoryScreen, GameOverScreen
+                if isinstance(screen, (VictoryScreen, GameOverScreen)):
+                    screen.name = self.current_input
                 self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
                 screen.render(self.mlx, self.mlx_ptr, self.win_ptr,
                               self.win_width, self.win_height)
@@ -240,14 +247,17 @@ class GlobalRenderer:
         self.last_update_time = now
 
         if update_state and self._update_callback is not None:
-            self._update_callback()
+            dt = now - self.last_update_time
+            self._update_callback(dt)
 
         if self._needs_full_redraw:
             self.mlx.mlx_clear_window(self.mlx_ptr, self.win_ptr)
             self.game_renderer.render_maze(self.mazegen.maze)
             self._update_hud_layout()
             self.game_renderer.render_pacgums(self.game_engine.pacgums)
-            self.game_renderer.render_super_pacgums(self.game_engine.super_pacgums, self._super_visible)
+            self.game_renderer.render_super_pacgums(
+                self.game_engine.super_pacgums, self._super_visible
+            )
             self._render_sprites()
             self._render_hud(force=True)
             self._cache_frame_state()
@@ -289,7 +299,8 @@ class GlobalRenderer:
             self._hud_dirty = True
         if self._hud.game_states.time_remaining <= 0 or\
            self._hud.game_states.current_lives <= 0:
-            self._ui_mode_setter(UIMode.GAME_OVER)
+            if self._ui_mode_setter is not None:
+                self._ui_mode_setter(UIMode.GAME_OVER)
 
     def _render_hud(self, force: bool) -> None:
         if not force and not self._hud_dirty:
@@ -317,7 +328,7 @@ class GlobalRenderer:
                                 for pacgum in self.game_engine.pacgums}
         current_super_cells = {(int(round(spg.x)), int(round(spg.y)))
                                for spg in self.game_engine.super_pacgums}
-        
+
         removed_cells = (self._prev_pacgum_cells - current_pacgum_cells) | \
                         (self._prev_super_pacgum_cells - current_super_cells)
         if removed_cells:
@@ -337,7 +348,8 @@ class GlobalRenderer:
             has_pacgum = (cell_x, cell_y) in current_pacgum_cells
             has_super = (cell_x, cell_y) in current_super_cells
             self.game_renderer.redraw_cell(self.mazegen.maze, cell_x, cell_y,
-                                           has_pacgum, has_super, self._super_visible)
+                                           has_pacgum, has_super,
+                                           self._super_visible)
 
         added_pacgums = current_pacgum_cells - self._prev_pacgum_cells
         for cell_x, cell_y in added_pacgums - cells_to_redraw:
@@ -350,9 +362,8 @@ class GlobalRenderer:
             frames = self.npc_frames.get(name, [])
             if npc.is_fleeing:
                 frames = self.npc_fear_frames
-            
+
             # Hide ghost if it's respawning
-            import time
             if time.monotonic() < npc.respawn_time:
                 continue
 
@@ -376,8 +387,9 @@ class GlobalRenderer:
             self._prev_actor_positions[name] = (npc.x, npc.y)
         self._prev_pacgum_cells = {(int(round(pacgum.x)), int(round(pacgum.y)))
                                    for pacgum in self.game_engine.pacgums}
-        self._prev_super_pacgum_cells = {(int(round(spg.x)), int(round(spg.y)))
-                                         for spg in self.game_engine.super_pacgums}
+        self._prev_super_pacgum_cells = \
+            {(int(round(spg.x)), int(round(spg.y)))
+             for spg in self.game_engine.super_pacgums}
 
     def _covered_cells(self, grid_x: float,
                        grid_y: float) -> set[tuple[int, int]]:
@@ -392,7 +404,8 @@ class GlobalRenderer:
     def _is_valid_cell(self, cell_x: int, cell_y: int) -> bool:
         if not self.mazegen.maze:
             return False
-        return 0 <= cell_y < len(self.mazegen.maze) and 0 <= cell_x < len(self.mazegen.maze[0])
+        return 0 <= cell_y < len(self.mazegen.maze) and \
+            0 <= cell_x < len(self.mazegen.maze[0])
 
     def set_player_direction(self, direction: str) -> None:
         """Set the active player sprite direction.

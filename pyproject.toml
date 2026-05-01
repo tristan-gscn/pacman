@@ -14,3 +14,7 @@ dependencies = [
 [tool.uv.sources]
 mlx = { path = "libs/mlx-2.2-py3-none-any.whl" }
 mazegenerator = { path = "libs/mazegenerator-2.0.1-py3-none-any.whl" }
+
+[tool.mypy]
+mypy_path = "typings"
+strict = true

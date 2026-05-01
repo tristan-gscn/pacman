@@ -42,7 +42,7 @@ class FindPath:
         from the current cell
         """
         row, col = cell
-        cell_walls: int = MazeUtils.unpack_cell(self.maze[row][col])
+        cell_walls = MazeUtils.unpack_cell(self.maze[row][col])
         neighbors: list[tuple[int, int]] = []
 
         # If no NORTH wall -> there's a NORTH neighbor (checking diff 0001)
@@ -137,3 +137,4 @@ class FindPath:
                     priority = new_cost + self.h(neighbor, end)
                     open_paths.append((priority, neighbor))
                     came_from[neighbor] = curr_node
+        return []

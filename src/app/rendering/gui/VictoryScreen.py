@@ -1,6 +1,6 @@
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 
-from src.app.rendering.gui import BaseScreen
+from .BaseScreen import BaseScreen
 from src.models import Color
 
 
@@ -27,7 +27,10 @@ class VictoryScreen(BaseScreen):
         message_y = title_y + 40
         score_x = max((win_width // 2) - (len(self.score_text) * 5), 0)
         score_y = message_y + 40
-        prompt_title_x = max((win_width // 2) - (len(self.prompt_title) * 5), 0)
+        prompt_title_x = max(
+            (win_width // 2) - (len(self.prompt_title) * 5),
+            0
+        )
         prompt_title_y = score_y + 50
         prompt_hint_x = max((win_width // 2) - (len(self.name) * 4), 0)
         prompt_hint_y = prompt_title_y + 30

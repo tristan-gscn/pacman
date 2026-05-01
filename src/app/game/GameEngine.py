@@ -1,6 +1,5 @@
-import random
-
-from mazegenerator.mazegenerator import MazeGenerator
+from mazegenerator.mazegenerator import (
+    MazeGenerator, )
 
 from src.app.game.Actor import Actor
 from src.app.game.Player import Player
@@ -281,8 +280,8 @@ class GameEngine:
     def collisions(self) -> None:
         import time
         if self.player.direction != "death":
-            px: int = self.player.x
-            py: int = self.player.y
+            px: float = self.player.x
+            py: float = self.player.y
             for ghost in self.npcs.values():
                 if time.monotonic() < ghost.respawn_time:
                     continue
@@ -294,7 +293,8 @@ class GameEngine:
                         ghost.is_fleeing = False
                         ghost.set_strategy(ghost.base_strategy)
                         ghost.respawn_time = time.monotonic() + 2.0
-                        self.game_states.score += self.game_states.points_per_ghost
+                        self.game_states.score += \
+                            self.game_states.points_per_ghost
                         ghost.path = []
                     else:
                         self.player.direction = "death"
@@ -303,14 +303,15 @@ class GameEngine:
 
     def eating_pacgum(self) -> None:
         px, py = int(round(self.player.x)), int(round(self.player.y))
-        
+
         # Check normal pacgums
         eaten_pacgums = [
             p for p in self.pacgums
             if int(round(p.x)) == px and int(round(p.y)) == py
         ]
         if eaten_pacgums:
-            self.game_states.score += len(eaten_pacgums) * self.game_states.points_per_pacgum
+            self.game_states.score += \
+                len(eaten_pacgums) * self.game_states.points_per_pacgum
 
         # Check super pacgums
         eaten_super = [
@@ -318,7 +319,8 @@ class GameEngine:
             if int(round(spg.x)) == px and int(round(spg.y)) == py
         ]
         if eaten_super:
-            self.game_states.score += len(eaten_super) * self.game_states.points_per_super_pacgum
+            self.game_states.score += \
+                len(eaten_super) * self.game_states.points_per_super_pacgum
             import time
             self.flee_timer = time.monotonic() + 10.0
             for npc in self.npcs.values():
@@ -330,8 +332,10 @@ class GameEngine:
     def rebirth(self) -> None:
         self.path_finder.maze = self._mazegen.maze
         self.player.direction = "right"
-        self.player.x = len(self._mazegen.maze[0]) // 2 - (len(self._mazegen.maze[0]) % 2 == 0)
-        self.player.y = len(self._mazegen.maze) // 2 - (len(self._mazegen.maze) % 2 == 0)
+        self.player.x = (len(self._mazegen.maze[0]) // 2
+                         - (len(self._mazegen.maze[0]) % 2 == 0))
+        self.player.y = (len(self._mazegen.maze) // 2
+                         - (len(self._mazegen.maze) % 2 == 0))
         for ghost in self.npcs.values():
             ghost.x = ghost.start_x
             ghost.y = ghost.start_y

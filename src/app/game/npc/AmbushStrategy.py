@@ -1,6 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .NPCStrategy import NPCStrategy
 from src.app.game.MazeUtils import MazeUtils
-from src.app.game.Player import Player
+
+if TYPE_CHECKING:
+    from src.app.game.Player import Player
 
 
 class AmbushStrategy(NPCStrategy):

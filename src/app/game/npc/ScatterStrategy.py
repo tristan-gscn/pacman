@@ -1,7 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .NPCStrategy import NPCStrategy
-from src.app.game.Player import Player
 from src.app.game.npc.FleeStrategy import FleeStrategy
-from src.app.game.npc.NPC import NPC
+
+if TYPE_CHECKING:
+    from src.app.game.Player import Player
+    from src.app.game.npc.NPC import NPC
 
 
 class ScatterStrategy(NPCStrategy):
@@ -12,7 +16,7 @@ class ScatterStrategy(NPCStrategy):
         self.npc_pos: tuple[int, int] = (0, 0)
         self.npc: NPC | None = None
 
-    def set_npc(self, npc: NPC):
+    def set_npc(self, npc: NPC) -> None:
         self.npc = npc
 
     def act(self, grid: list[list[int]], player: Player) -> tuple[int, int]:

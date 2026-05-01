@@ -1,5 +1,5 @@
 from functools import partial
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 from src.models import Color
 from src.app.game.PacGum import PacGum
 from src.app.game.SuperPacGum import SuperPacGum
@@ -63,7 +63,11 @@ class GameRenderer:
         for pacgum in pacgums:
             self.draw_pacgum_at(int(round(pacgum.x)), int(round(pacgum.y)))
 
-    def render_super_pacgums(self, super_pacgums: list[SuperPacGum], visible: bool) -> None:
+    def render_super_pacgums(
+        self,
+        super_pacgums: list[SuperPacGum],
+        visible: bool
+    ) -> None:
         if not visible:
             return
         for spg in super_pacgums:
@@ -111,8 +115,12 @@ class GameRenderer:
         radius = max(self.cell_size // 12, 1)
         pixel_put = self.mlx.mlx_pixel_put
         half_cell = self.cell_size / 2.0
-        center_x = int(round(cell_x * self.cell_size + self.offset_x + half_cell))
-        center_y = int(round(cell_y * self.cell_size + self.offset_y + half_cell))
+        center_x = int(round(
+            cell_x * self.cell_size + self.offset_x + half_cell
+        ))
+        center_y = int(round(
+            cell_y * self.cell_size + self.offset_y + half_cell
+        ))
 
         for dy in range(-radius, radius + 1):
             for dx in range(-radius, radius + 1):
@@ -130,8 +138,12 @@ class GameRenderer:
         radius = max(self.cell_size // 6, 2)
         pixel_put = self.mlx.mlx_pixel_put
         half_cell = self.cell_size / 2.0
-        center_x = int(round(cell_x * self.cell_size + self.offset_x + half_cell))
-        center_y = int(round(cell_y * self.cell_size + self.offset_y + half_cell))
+        center_x = int(round(
+            cell_x * self.cell_size + self.offset_x + half_cell
+        ))
+        center_y = int(round(
+            cell_y * self.cell_size + self.offset_y + half_cell
+        ))
 
         for dy in range(-radius, radius + 1):
             for dx in range(-radius, radius + 1):

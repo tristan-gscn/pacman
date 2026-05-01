@@ -17,4 +17,3 @@ class Actor:
 
     def set_game_engine(self, game_engine: GameEngine | None) -> None:
         self._game_engine = game_engine
-

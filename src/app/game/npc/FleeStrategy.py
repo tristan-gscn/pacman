@@ -1,21 +1,25 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .NPCStrategy import NPCStrategy
-from src.app.game.Player import Player
 from src.app.game.MazeUtils import MazeUtils
-from src.app.game.npc.NPC import NPC
 import random
+
+if TYPE_CHECKING:
+    from src.app.game.Player import Player
+    from src.app.game.npc.NPC import NPC
 
 
 class FleeStrategy(NPCStrategy):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.flee_target: tuple[int, int] | None = None
         self.npc_pos: tuple[int, int] = (0, 0)
         self.npc: NPC | None = None
 
-    def set_npc(self, npc: NPC):
+    def set_npc(self, npc: NPC) -> None:
         self.npc = npc
 
-    def act(self, grid: list[list[int]], player: Player) -> None:
+    def act(self, grid: list[list[int]], player: Player) -> tuple[int, int]:
         if self.npc is not None:
             self.npc_pos = (int(round(self.npc.y)), int(round(self.npc.x)))
 
@@ -32,7 +36,7 @@ class FleeStrategy(NPCStrategy):
         grid: list[list[int]],
         player_pos: tuple[int, int],
         npc_pos: tuple[int, int]
-    ):
+    ) -> tuple[int, int]:
         height = len(grid)
         width = len(grid[0]) if height else 0
 

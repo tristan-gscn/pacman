@@ -1,8 +1,8 @@
 import os
 import json
+from typing import Any
 
-from mazegenerator.mazegenerator import (  # type: ignore[import-untyped]
-    MazeGenerator, )
+from mazegenerator.mazegenerator import MazeGenerator
 from src.parsing import ConfigParser
 from src.app.game.GameEngine import GameEngine
 from src.app.rendering import GlobalRenderer
@@ -30,6 +30,8 @@ class App:
             print(f"{type(e).__name__} error occured while parsing: {e}")
             os._exit(1)
         self.game_states: GameStates = GameStates(
+            score=0,
+            level=1,
             time_remaining=self.config.level_max_time,
             max_lives=self.config.lives,
             current_lives=self.config.lives,
@@ -139,8 +141,8 @@ class App:
 
                 if os.path.exists(self.config.highscore_filename):
                     with open(self.config.highscore_filename, "r") as f:
-                        scores_dict: dict[str, int] = json.load(f)
-                        for name, score in scores_dict.items():
+                        loaded_scores: dict[str, Any] = json.load(f)
+                        for name, score in loaded_scores.items():
                             if not isinstance(name, str) or not isinstance(
                                     score, int):
                                 raise ValueError(
@@ -151,18 +153,20 @@ class App:
                 new_score = self.game_states.score
 
                 # Load existing scores and sort them to find the 10th score
-                existing_scores = sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
-                
+                existing_scores = sorted(
+                    scores_dict.items(),
+                    key=lambda x: x[1], reverse=True
+                )
+
                 can_save = False
                 if len(existing_scores) < 10:
                     can_save = True
                 else:
-                    # Check if the new score is strictly better than the 10th one
-                    # or if the user is already in the top 10 and improves their score
                     tenth_score = existing_scores[9][1]
                     if new_score > tenth_score:
                         can_save = True
-                    elif new_name in scores_dict and new_score > scores_dict[new_name]:
+                    elif new_name in scores_dict and \
+                            new_score > scores_dict[new_name]:
                         can_save = True
 
                 if can_save:
@@ -192,7 +196,10 @@ class App:
     def _exit_app(self) -> None:
         if self.renderer is not None:
             self.renderer.close()
-        os._exit(0)
+        # Using a proper exit or returning to let the loop end is cleaner
+        # but MLX often requires os._exit(0)
+        import sys
+        sys.exit(0)
 
     def _on_key_release(self, keycode: int) -> None:
         """Handle key release events to stop or switch movement.
@@ -206,7 +213,7 @@ class App:
         if self.game_engine is not None:
             self.game_engine.on_key_release(keycode)
 
-    def _on_update(self) -> None:
+    def _on_update(self, dt: float = 0.0) -> None:
         """Move the player continuously based on current input state.
         """
         if self.game_engine is None:

@@ -1,10 +1,8 @@
-import json
-import os
 from pathlib import Path
 
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 
-from src.app.rendering.gui import BaseScreen
+from .BaseScreen import BaseScreen
 from src.models import Color
 
 

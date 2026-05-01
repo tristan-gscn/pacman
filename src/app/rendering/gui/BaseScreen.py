@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 
 
 class BaseScreen(ABC):

@@ -310,6 +310,7 @@ class GameEngine:
             self.flee_timer = time.monotonic() + 10.0
 
     def rebirth(self) -> None:
+        self.path_finder.maze = self._mazegen.maze
         self.player.direction = "right"
         self.player.x = len(self._mazegen.maze[0]) // 2 - (len(self._mazegen.maze[0]) % 2 == 0)
         self.player.y = len(self._mazegen.maze) // 2 - (len(self._mazegen.maze) % 2 == 0)

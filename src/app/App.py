@@ -10,7 +10,6 @@ from src.models import UIMode
 from src.models.Configuration import Configuration
 from src.models.GameStates import GameStates
 from src.app.game.FindPath import FindPath
-from src.models.resources import get_resource_path
 
 
 class App:
@@ -45,16 +44,11 @@ class App:
             config_path (str | None): Path to the JSON configuration file.
                 Defaults to the bundled config.json.
         """
-        self.config_path = (
-            str(get_resource_path("config.json"))
-            if config_path is None
-            else config_path
-        )
-        try:
-            self.config: Configuration = ConfigParser().parse(self.config_path)
-        except Exception as e:
-            print(f"{type(e).__name__} error occured while parsing: {e}")
-            os._exit(1)
+        if config_path is None:
+            from src.models.resources import get_resource_path
+            config_path = str(get_resource_path("config.json"))
+        self.config_path = config_path
+        self.config: Configuration = ConfigParser().parse(self.config_path)
         self.game_states: GameStates = GameStates(
             score=0,
             level=1,

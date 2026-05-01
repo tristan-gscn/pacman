@@ -1,10 +1,18 @@
 from src.models import Configuration
 from src.models.errors import FileFormatError
 import os
+import re
 
 
 class ConfigParser:
     """Parser for the application configuration file."""
+
+    _COMMENT_PATTERNS = [
+        r'//[^\n]*',        # C++ style single-line
+        r'/\*[\s\S]*?\*/',  # C style block
+        r'#[^\n]*',         # Shell style
+    ]
+    _COMMENT_RE = re.compile('|'.join(_COMMENT_PATTERNS))
 
     @staticmethod
     def parse(file_path: str) -> Configuration:
@@ -26,4 +34,6 @@ class ConfigParser:
         if not os.path.exists(file_path):
             raise FileNotFoundError('Your file doesn\'t exist')
         with open(file_path, 'r') as f:
-            return Configuration.model_validate_json(f.read())
+            raw = f.read()
+        cleaned = ConfigParser._COMMENT_RE.sub('', raw)
+        return Configuration.model_validate_json(cleaned)

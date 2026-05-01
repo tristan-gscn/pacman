@@ -23,6 +23,7 @@ class NPC(Actor):
         self.start_y = start_y
         self.is_fleeing = False
         self.respawn_time = 0.0
+        self.flee_timer = 0.0
         self.set_strategy(strategy)
 
     def set_strategy(self, strategy: NPCStrategy) -> None:

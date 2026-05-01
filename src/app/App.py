@@ -198,8 +198,7 @@ class App:
             self.renderer.close()
         # Using a proper exit or returning to let the loop end is cleaner
         # but MLX often requires os._exit(0)
-        import sys
-        sys.exit(0)
+        os._exit(0)
 
     def _on_key_release(self, keycode: int) -> None:
         """Handle key release events to stop or switch movement.

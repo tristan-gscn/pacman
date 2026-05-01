@@ -77,9 +77,7 @@ class GameEngine:
         self.rebirth()
         self.pacgums: list[PacGum] = []
         self.super_pacgums: list[SuperPacGum] = []
-        self.flee_timer: float = 0.0
         self._attach_engine()
-        self.set_global_flee(self.global_flee)
         self._generate_pacgums()
 
     def set_global_flee(self, enabled: bool) -> None:
@@ -197,18 +195,15 @@ class GameEngine:
                 if (int(round(spg.x)), int(round(spg.y))) != player_cell
             ]
 
-        if self.global_flee:
-            import time
-            if time.monotonic() > self.flee_timer:
-                for npc in self.npcs.values():
-                    npc.is_fleeing = False
-                    npc.set_strategy(npc.base_strategy)
-                    npc.path = []
-
     def update_ghosts(self) -> None:
         import time
         current_time = time.monotonic()
         for ghost in self.npcs.values():
+            if ghost.is_fleeing and current_time > ghost.flee_timer:
+                ghost.is_fleeing = False
+                ghost.set_strategy(ghost.base_strategy)
+                ghost.path = []
+
             if current_time < ghost.respawn_time:
                 continue
 
@@ -291,6 +286,7 @@ class GameEngine:
                         ghost.x = ghost.start_x
                         ghost.y = ghost.start_y
                         ghost.is_fleeing = False
+                        ghost.flee_timer = 0.0
                         ghost.set_strategy(ghost.base_strategy)
                         ghost.respawn_time = time.monotonic() + 2.0
                         self.game_states.score += \
@@ -322,10 +318,11 @@ class GameEngine:
             self.game_states.score += \
                 len(eaten_super) * self.game_states.points_per_super_pacgum
             import time
-            self.flee_timer = time.monotonic() + 10.0
+            now = time.monotonic()
             for npc in self.npcs.values():
-                if time.monotonic() >= npc.respawn_time:
+                if now >= npc.respawn_time:
                     npc.is_fleeing = True
+                    npc.flee_timer = now + 10.0
                     npc.set_strategy(FleeStrategy())
                     npc.path = []
 
@@ -341,4 +338,5 @@ class GameEngine:
             ghost.y = ghost.start_y
             ghost.is_fleeing = False
             ghost.respawn_time = 0.0
+            ghost.flee_timer = 0.0
             ghost.set_strategy(ghost.base_strategy)

@@ -6,7 +6,8 @@ from src.models.GameStates import GameStates
 
 
 class InGameHud(BaseScreen):
-    """Heads-up display rendered during gameplay showing score, lives, and level."""
+    """Heads-up display rendered during gameplay showing score, lives,
+    and level."""
 
     def __init__(self, game_states: GameStates) -> None:
         """Initialize the HUD with game state references.
@@ -171,7 +172,8 @@ class InGameHud(BaseScreen):
             win_height (int): Window height in pixels.
 
         Returns:
-            list[tuple[int, int, int, int]]: List of (x, y, width, height) tuples.
+            list[tuple[int, int, int, int]]: List of (x, y, width, height)
+                tuples.
         """
         maze_left, maze_right, _, _, top_y, bottom_y = self._get_layout(
             win_width,

@@ -147,7 +147,8 @@ class GameEngine:
         """Set the current direction of the player.
 
         Args:
-            direction (str): The new direction (e.g., 'left', 'right', 'up', 'down').
+            direction (str): The new direction
+                (e.g., 'left', 'right', 'up', 'down').
         """
         self.player.direction = direction
 

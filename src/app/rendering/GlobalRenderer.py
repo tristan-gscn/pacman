@@ -293,7 +293,8 @@ class GlobalRenderer:
         self._cache_frame_state()
 
     def _update_hud_layout(self) -> None:
-        """Update HUD layout based on current maze dimensions and check game over conditions."""
+        """Update HUD layout based on current maze dimensions and check game
+        over conditions."""
         maze_width = 0
         maze_height = 0
         if self.mazegen.maze:
@@ -344,7 +345,8 @@ class GlobalRenderer:
                 pixel_put(self.mlx_ptr, self.win_ptr, px, py, color)
 
     def _render_incremental(self) -> None:
-        """Perform incremental rendering by redrawing only changed maze cells."""
+        """Perform incremental rendering by redrawing only changed maze
+        cells."""
         current_pacgum_cells = {(int(round(pacgum.x)), int(round(pacgum.y)))
                                 for pacgum in self.game_engine.pacgums}
         current_super_cells = {(int(round(spg.x)), int(round(spg.y)))
@@ -402,7 +404,8 @@ class GlobalRenderer:
                                                  self.game_renderer.offset_y)
 
     def _cache_frame_state(self) -> None:
-        """Cache current actor positions and pacgum cells for incremental rendering."""
+        """Cache current actor positions and pacgum cells for incremental
+        rendering."""
         self._prev_actor_positions = {
             "player": (self.game_engine.player.x, self.game_engine.player.y)
         }

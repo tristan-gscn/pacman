@@ -117,7 +117,11 @@ class GlobalRenderer:
                 score=game_engine.game_states.score,
                 name=current_input),
             UIMode.HIGHSCORES: HighscoresScreen(file),
-            UIMode.INSTRUCTIONS: InstructionsScreen(),
+            UIMode.INSTRUCTIONS: InstructionsScreen(
+                points_per_pacgum=game_engine.game_states.points_per_pacgum,
+                points_per_super_pacgum=(
+                    game_engine.game_states.points_per_super_pacgum),
+                points_per_ghost=game_engine.game_states.points_per_ghost),
         }
         self._highscore_file = file
         self._hud = InGameHud(self.game_engine.game_states)

@@ -110,9 +110,13 @@ class GlobalRenderer:
             UIMode.MAIN_MENU: MenuScreen(file),
             UIMode.PAUSE_MENU: PauseMenuScreen(),
             UIMode.GAME_OVER: GameOverScreen(
-                score=game_engine.game_states.score, name=current_input),
-            UIMode.VICTORY: VictoryScreen(score=game_engine.game_states.score,
-                                          name=current_input),
+                get_score=lambda: self.game_engine.game_states.score,
+                name=current_input
+            ),
+            UIMode.VICTORY: VictoryScreen(
+                get_score=lambda: self.game_engine.game_states.score,
+                name=current_input
+            ),
             UIMode.HIGHSCORES: HighscoresScreen(file),
             UIMode.INSTRUCTIONS: InstructionsScreen(
                 points_per_pacgum=game_engine.game_states.points_per_pacgum,

@@ -3,11 +3,13 @@ from mlx import Mlx
 from .BaseScreen import BaseScreen
 from src.models import Color
 
+from typing import Callable
+
 
 class GameOverScreen(BaseScreen):
     """Screen displayed when the player loses all lives."""
 
-    def __init__(self, score: int, name: str):
+    def __init__(self, get_score: Callable, name: str):
         """Initialize the game over screen.
 
         Args:
@@ -15,7 +17,8 @@ class GameOverScreen(BaseScreen):
             name (str): The player's name input.
         """
         self.title = "GAME OVER"
-        self.score_text = f"Final Score: {score}"
+        self.score_text = "ERROR NO FINAL SCORE"
+        self.get_score = get_score
         self.prompt_title = "Enter your name:"
         self.name = name
 
@@ -36,6 +39,8 @@ class GameOverScreen(BaseScreen):
             win_width (int): Window width in pixels.
             win_height (int): Window height in pixels.
         """
+
+        self.score_text = f"Final Score: {self.get_score()}"
 
         title_x = max((win_width // 2) - (len(self.title) * 6), 0)
         title_y = max((win_height // 2) - 80, 0)

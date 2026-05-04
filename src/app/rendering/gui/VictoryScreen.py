@@ -3,11 +3,13 @@ from mlx import Mlx
 from .BaseScreen import BaseScreen
 from src.models import Color
 
+from typing import Callable
+
 
 class VictoryScreen(BaseScreen):
     """Screen displayed when the player completes all levels."""
 
-    def __init__(self, score: int, name: str):
+    def __init__(self, get_score: Callable, name: str):
         """Initialize the victory screen.
 
         Args:
@@ -16,7 +18,8 @@ class VictoryScreen(BaseScreen):
         """
         self.title = "VICTORY"
         self.message = "GG, you won!"
-        self.score_text = f"Final Score: {score}"
+        self.score_text = "ERROR NO FINAL SCORE"
+        self.get_score = get_score
         self.prompt_title = "Enter your name:"
         self.name = name
 
@@ -37,6 +40,8 @@ class VictoryScreen(BaseScreen):
             win_width (int): Window width in pixels.
             win_height (int): Window height in pixels.
         """
+
+        self.score_text = f"Final Score: {self.get_score()}"
 
         title_x = max((win_width // 2) - (len(self.title) * 6), 0)
         title_y = max((win_height // 2) - 90, 0)

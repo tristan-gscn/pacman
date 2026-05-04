@@ -4,6 +4,8 @@ import os
 import re
 import json
 
+from typing import Any
+
 
 class ConfigParser:
     """Parser for the application configuration file."""
@@ -37,7 +39,9 @@ class ConfigParser:
         with open(file_path, 'r') as f:
             raw = f.read()
 
-        def reject_duplicates(ordered_pairs: list[tuple[str, any]]) -> dict:
+        def reject_duplicates(
+            ordered_pairs: list[tuple[str, Any]]
+        ) -> dict[str, str | int | None]:
             d = {}
             for key, value in ordered_pairs:
                 if key in d:

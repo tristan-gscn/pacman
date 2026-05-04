@@ -2,6 +2,7 @@ from src.models import Configuration
 from src.models.errors import FileFormatError
 import os
 import re
+import json
 
 
 class ConfigParser:
@@ -35,5 +36,19 @@ class ConfigParser:
             raise FileNotFoundError('Your file doesn\'t exist')
         with open(file_path, 'r') as f:
             raw = f.read()
-        cleaned = ConfigParser._COMMENT_RE.sub('', raw)
-        return Configuration.model_validate_json(cleaned)
+
+        def reject_duplicates(ordered_pairs: list[tuple[str, any]]) -> dict:
+            d = {}
+            for key, value in ordered_pairs:
+                if key in d:
+                    raise ValueError(f"Duplicate keyword detected in JSON: "
+                                     f"'{key}'")
+                d[key] = value
+            return d
+
+        cleaned = json.loads(
+            ConfigParser._COMMENT_RE.sub('', raw),
+            object_pairs_hook=reject_duplicates
+        )
+
+        return Configuration.model_validate(cleaned)

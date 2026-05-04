@@ -57,29 +57,6 @@ class InGameHud(BaseScreen):
         self._maze_height = next_height
         return changed
 
-    # def set_state(
-    #     self,
-    #     score: int,
-    #     level: int,
-    #     time_remaining: str,
-    #     max_lives: int,
-    #     current_lives: int
-    # ) -> bool:
-    #     changed = (
-    #         score != self.score
-    #         or level != self.level
-    #         or time_remaining != self.time_remaining
-    #         or max_lives != self.max_lives
-    #         or current_lives != self.current_lives
-    #     )
-
-    #     self.score = score
-    #     self.level = level
-    #     self.time_remaining = time_remaining
-    #     self.max_lives = max_lives
-    #     self.current_lives = current_lives
-    #     return changed
-
     def render(
         self,
         mlx: Mlx,

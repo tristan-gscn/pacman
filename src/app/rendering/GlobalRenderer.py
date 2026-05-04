@@ -3,8 +3,7 @@ import math
 import time
 
 from mazegenerator.mazegenerator import (
-    MazeGenerator,
-)
+    MazeGenerator)
 from typing import Any
 from mlx import Mlx
 from src.app.game.GameEngine import GameEngine
@@ -111,11 +110,9 @@ class GlobalRenderer:
             UIMode.MAIN_MENU: MenuScreen(file),
             UIMode.PAUSE_MENU: PauseMenuScreen(),
             UIMode.GAME_OVER: GameOverScreen(
-                score=game_engine.game_states.score,
-                name=current_input),
-            UIMode.VICTORY: VictoryScreen(
-                score=game_engine.game_states.score,
-                name=current_input),
+                score=game_engine.game_states.score, name=current_input),
+            UIMode.VICTORY: VictoryScreen(score=game_engine.game_states.score,
+                                          name=current_input),
             UIMode.HIGHSCORES: HighscoresScreen(file),
             UIMode.INSTRUCTIONS: InstructionsScreen(
                 points_per_pacgum=game_engine.game_states.points_per_pacgum,
@@ -156,14 +153,18 @@ class GlobalRenderer:
         self.npc_frames: dict[str, dict[str, list[int]]] = {}
         for name, npc in self.game_engine.npcs.items():
             self.npc_frames[name] = {
-                "left": self.sprite_renderer.load_sprite_frames(
-                    npc.sprites.mov_left, recolor=npc.color),
-                "right": self.sprite_renderer.load_sprite_frames(
-                    npc.sprites.mov_right, recolor=npc.color),
-                "up": self.sprite_renderer.load_sprite_frames(
-                    npc.sprites.mov_up, recolor=npc.color),
-                "down": self.sprite_renderer.load_sprite_frames(
-                    npc.sprites.mov_down, recolor=npc.color),
+                "left":
+                self.sprite_renderer.load_sprite_frames(npc.sprites.mov_left,
+                                                        recolor=npc.color),
+                "right":
+                self.sprite_renderer.load_sprite_frames(npc.sprites.mov_right,
+                                                        recolor=npc.color),
+                "up":
+                self.sprite_renderer.load_sprite_frames(npc.sprites.mov_up,
+                                                        recolor=npc.color),
+                "down":
+                self.sprite_renderer.load_sprite_frames(npc.sprites.mov_down,
+                                                        recolor=npc.color),
             }
         first_npc = next(iter(self.game_engine.npcs.values()), None)
         self.npc_fear_frames = []
@@ -263,9 +264,9 @@ class GlobalRenderer:
             self.old_maze = self.mazegen.maze
             self.beginning_timestamp = time.monotonic()
 
-        self.game_engine.game_states.time_remaining = self._level_time - int(
-            now - self.beginning_timestamp
-        )
+        if not self.game_engine.cheat_mode:
+            self.game_engine.game_states.time_remaining = self._level_time -\
+                int(now - self.beginning_timestamp)
         self.last_update_time = now
 
         if update_state and self._update_callback is not None:
@@ -278,8 +279,7 @@ class GlobalRenderer:
             self._update_hud_layout()
             self.game_renderer.render_pacgums(self.game_engine.pacgums)
             self.game_renderer.render_super_pacgums(
-                self.game_engine.super_pacgums, self._super_visible
-            )
+                self.game_engine.super_pacgums, self._super_visible)
             self._render_sprites()
             self._render_hud(force=True)
             self._cache_frame_state()
@@ -405,8 +405,8 @@ class GlobalRenderer:
             else:
                 direction = getattr(npc, "direction", "right")
                 frames_dict = self.npc_frames.get(name, {})
-                frames = frames_dict.get(
-                    direction, frames_dict.get("right", []))
+                frames = frames_dict.get(direction,
+                                         frames_dict.get("right", []))
 
             # Hide ghost if it's respawning
             if time.monotonic() < npc.respawn_time:

@@ -1,0 +1,286 @@
+from mlx import Mlx
+
+from .BaseScreen import BaseScreen
+from src.models import Color
+from src.models.GameStates import GameStates
+
+
+class InGameHud(BaseScreen):
+    """Heads-up display rendered during gameplay showing score, lives,
+    and level."""
+
+    def __init__(self, game_states: GameStates) -> None:
+        """Initialize the HUD with game state references.
+
+        Args:
+            game_states (GameStates): Shared game state object.
+        """
+        self._maze_offset_x = 0
+        self._maze_offset_y = 0
+        self._maze_width = 0
+        self._maze_height = 0
+        self.game_states: GameStates = game_states
+
+    def update_layout(
+        self,
+        maze_offset_x: int,
+        maze_offset_y: int,
+        maze_width: int,
+        maze_height: int
+    ) -> bool:
+        """Update the HUD layout based on maze position and dimensions.
+
+        Args:
+            maze_offset_x (int): Horizontal maze offset in pixels.
+            maze_offset_y (int): Vertical maze offset in pixels.
+            maze_width (int): Maze width in pixels.
+            maze_height (int): Maze height in pixels.
+
+        Returns:
+            bool: True if the layout changed and HUD needs redrawing.
+        """
+        next_offset_x = max(maze_offset_x, 0)
+        next_offset_y = max(maze_offset_y, 0)
+        next_width = max(maze_width, 0)
+        next_height = max(maze_height, 0)
+
+        changed = (
+            next_offset_x != self._maze_offset_x
+            or next_offset_y != self._maze_offset_y
+            or next_width != self._maze_width
+            or next_height != self._maze_height
+        )
+
+        self._maze_offset_x = next_offset_x
+        self._maze_offset_y = next_offset_y
+        self._maze_width = next_width
+        self._maze_height = next_height
+        return changed
+
+    def render(
+        self,
+        mlx: Mlx,
+        mlx_ptr: int,
+        win_ptr: int,
+        win_width: int,
+        win_height: int
+    ) -> None:
+        """Render the in-game HUD with level, timer, score, and life hearts.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+        """
+        layout = self._get_layout(win_width, win_height)
+        maze_left, maze_right, _, _, top_y, bottom_y = layout
+
+        heart_scale = 3
+        heart_width = 8 * heart_scale
+        heart_height = 7 * heart_scale
+        heart_spacing = 6
+        total_width = (
+            self.game_states.max_lives * heart_width
+            + max(self.game_states.max_lives - 1, 0) * heart_spacing
+        )
+        hearts_x = max(maze_right - total_width, 0)
+        hearts_y = max(bottom_y - (heart_height - 16), 0)
+
+        level_text = f"LEVEL {self.game_states.level}"
+        time_text = \
+            f"{self.game_states.time_remaining // 60}:" \
+            f"{"0" if self.game_states.time_remaining % 60 < 10 else ""}" \
+            f"{self.game_states.time_remaining % 60}"
+        score_text = f"SCORE: {self.game_states.score}"
+
+        level_x = max(maze_left, 0)
+        time_x = max(maze_right - (len(time_text) * 10), 0)
+        score_x = max(maze_left, 0)
+
+        mlx.mlx_string_put(
+            mlx_ptr,
+            win_ptr,
+            level_x,
+            top_y,
+            Color.WHITE,
+            level_text
+        )
+        mlx.mlx_string_put(
+            mlx_ptr,
+            win_ptr,
+            time_x,
+            top_y,
+            Color.WHITE,
+            time_text
+        )
+        mlx.mlx_string_put(
+            mlx_ptr,
+            win_ptr,
+            score_x,
+            bottom_y,
+            Color.WHITE,
+            score_text
+        )
+
+        for idx in range(self.game_states.max_lives):
+            filled = idx < self.game_states.current_lives
+            heart_x = hearts_x + idx * (heart_width + heart_spacing)
+            self._draw_heart(
+                mlx,
+                mlx_ptr,
+                win_ptr,
+                heart_x,
+                hearts_y,
+                heart_scale,
+                filled
+            )
+
+    def get_hud_rects(
+        self,
+        win_width: int,
+        win_height: int
+    ) -> list[tuple[int, int, int, int]]:
+        """Get the rectangular regions occupied by HUD elements.
+
+        Args:
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+
+        Returns:
+            list[tuple[int, int, int, int]]: List of (x, y, width, height)
+                tuples.
+        """
+        maze_left, maze_right, _, _, top_y, bottom_y = self._get_layout(
+            win_width,
+            win_height
+        )
+        rects: list[tuple[int, int, int, int]] = []
+
+        level_text = f"LEVEL {self.game_states.level}"
+        time_text = \
+            f"{self.game_states.time_remaining // 60}: " \
+            f"{"0" if self.game_states.time_remaining % 60 < 10 else ""}" \
+            f"{self.game_states.time_remaining % 60}"
+        score_text = f"SCORE: {self.game_states.score}"
+
+        text_height = 18
+        text_width = 10
+
+        level_x = max(maze_left, 0)
+        time_x = max(maze_right - (len(time_text) * text_width), 0)
+        score_x = max(maze_left, 0)
+
+        rects.append(
+            (level_x, top_y, len(level_text) * text_width, text_height)
+        )
+        rects.append(
+            (time_x, top_y, len(time_text) * text_width, text_height)
+        )
+        rects.append(
+            (score_x, bottom_y, len(score_text) * text_width, text_height)
+        )
+
+        heart_scale = 3
+        heart_width = 8 * heart_scale
+        heart_height = 7 * heart_scale
+        heart_spacing = 6
+        total_width = (
+            self.game_states.max_lives * heart_width
+            + max(self.game_states.max_lives - 1, 0) * heart_spacing
+        )
+        hearts_x = max(maze_right - total_width, 0)
+        hearts_y = max(bottom_y - (heart_height - 16), 0)
+        rects.append((hearts_x, hearts_y, total_width, heart_height))
+        return [rect for rect in rects if rect[2] > 0 and rect[3] > 0]
+
+    def _get_layout(
+        self,
+        win_width: int,
+        win_height: int
+    ) -> tuple[int, int, int, int, int, int]:
+        """Compute the layout boundaries for HUD element placement.
+
+        Args:
+            win_width (int): Window width in pixels.
+            win_height (int): Window height in pixels.
+
+        Returns:
+            tuple[int, int, int, int, int, int]: Maze left, right, top, bottom,
+                top_y for upper HUD, and bottom_y for lower HUD.
+        """
+        maze_left = self._maze_offset_x
+        maze_top = self._maze_offset_y
+        maze_width = self._maze_width
+        maze_height = self._maze_height
+        if maze_width <= 0 or maze_height <= 0:
+            maze_left = 0
+            maze_top = 0
+            maze_width = win_width
+            maze_height = win_height
+
+        maze_right = maze_left + maze_width
+        maze_bottom = maze_top + maze_height
+
+        top_y = max(maze_top - 30, 0)
+        bottom_y = min(maze_bottom + 12, win_height - 30)
+        return (maze_left, maze_right, maze_top, maze_bottom, top_y, bottom_y)
+
+    def _draw_heart(
+        self,
+        mlx: Mlx,
+        mlx_ptr: int,
+        win_ptr: int,
+        x: int,
+        y: int,
+        scale: int,
+        filled: bool
+    ) -> None:
+        """Draw a heart-shaped pixel art life indicator.
+
+        Args:
+            mlx (Mlx): MLX wrapper instance.
+            mlx_ptr (int): Pointer to MLX context.
+            win_ptr (int): Pointer to the MLX window.
+            x (int): Left pixel coordinate.
+            y (int): Top pixel coordinate.
+            scale (int): Pixel scale factor for the heart.
+            filled (bool): Whether the heart is filled (alive) or outlined.
+        """
+        if filled:
+            pattern = [
+                "01100110",
+                "11111111",
+                "11111111",
+                "11111111",
+                "01111110",
+                "00111100",
+                "00011000",
+            ]
+        else:
+            pattern = [
+                "01100110",
+                "10011001",
+                "10000001",
+                "10000001",
+                "01000010",
+                "00100100",
+                "00011000",
+            ]
+
+        for row_index, row in enumerate(pattern):
+            for col_index, value in enumerate(row):
+                if value != "1":
+                    continue
+                px = x + col_index * scale
+                py = y + row_index * scale
+                for dy in range(scale):
+                    for dx in range(scale):
+                        mlx.mlx_pixel_put(
+                            mlx_ptr,
+                            win_ptr,
+                            px + dx,
+                            py + dy,
+                            Color.RED
+                        )

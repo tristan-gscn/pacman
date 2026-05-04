@@ -1,0 +1,19 @@
+from typing import List, Tuple, Optional
+
+
+class MazeGenerator:
+    def __init__(
+        self,
+        size: Tuple[int, int],
+        seed: Optional[int] = None,
+        perfect: bool = True
+    ) -> None: ...
+    def generate(self, seed: str | int | None = 0) -> None: ...
+    @property
+    def maze(self) -> List[List[int]]: ...
+    @property
+    def maze_entry(self) -> Tuple[int, int]: ...
+    @property
+    def maze_exit(self) -> Tuple[int, int]: ...
+    @property
+    def shortest_path(self) -> List[Tuple[int, int]]: ...

@@ -1,0 +1,15 @@
+
+{
+
+	"highscore_filename": "score.json",
+	"width": 15,
+	"height": 15,
+	"lives": 3,
+	"points_per_pacgum": 1,
+	"points_per_super_pacgum": 5,
+	"points_per_ghost": 10,
+	"seed": 42,
+	"level_max_time": 150,
+	"levels_to_generate": 10
+
+}

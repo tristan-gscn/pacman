@@ -1,0 +1,51 @@
+========================================
+             PACMAN
+========================================
+
+CONTROLS
+--------
+Movement:
+  W / Up Arrow     - Move up
+  S / Down Arrow   - Move down
+  A / Left Arrow   - Move left
+  D / Right Arrow  - Move right
+
+General:
+  Escape           - Pause game / Back
+  Enter            - Confirm / Resume
+  Space            - High scores (menu)
+  Shift            - Instructions (menu)
+
+In-Game (Pause Menu):
+  Escape           - Return to main menu
+  Enter            - Resume game
+
+CHEAT CODE
+----------
+Enter the Konami code during gameplay:
+  UP UP DOWN DOWN LEFT RIGHT LEFT RIGHT B A ENTER
+
+This toggles cheat mode:
+  - Ghosts stop moving
+  - Player becomes invincible
+  - While paused, press Space to skip to the next level
+  - Enter the code again to disable
+
+OPTIONS
+-------
+Game configuration (width, height, lives, time, etc.)
+can be customized in config.json.
+
+SCORING
+-------
+  Pacgum         - 5 points
+  Super Pacgum   - 4 points
+  Ghost (flee)   - 5 points
+
+OBJECTIVE
+---------
+Eat all pacgums and super pacgums in the maze to
+advance to the next level. Survive all 10 levels
+to win!
+
+========================================

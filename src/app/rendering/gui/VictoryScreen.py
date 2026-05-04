@@ -9,7 +9,7 @@ from typing import Callable
 class VictoryScreen(BaseScreen):
     """Screen displayed when the player completes all levels."""
 
-    def __init__(self, get_score: Callable, name: str):
+    def __init__(self, get_score: Callable[[], int], name: str):
         """Initialize the victory screen.
 
         Args:

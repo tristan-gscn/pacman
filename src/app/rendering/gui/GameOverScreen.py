@@ -9,7 +9,7 @@ from typing import Callable
 class GameOverScreen(BaseScreen):
     """Screen displayed when the player loses all lives."""
 
-    def __init__(self, get_score: Callable, name: str):
+    def __init__(self, get_score: Callable[[], int], name: str):
         """Initialize the game over screen.
 
         Args:

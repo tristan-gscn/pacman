@@ -1,3 +1,13 @@
+help:
+	@echo "Available commands:"
+	@echo "  make install     - Install dependencies"
+	@echo "  make run         - Run the application"
+	@echo "  make clean       - Clean temporary files"
+	@echo "  make debug       - Open the project in debug mode"
+	@echo "  make lint        - Run linters and type checkers"
+	@echo "  make package     - Create a package that can be exported on other systems"
+	@echo "  make lint-strict - Run linters and type checkers in strict mode"
+
 install:
 	uv sync
 
@@ -21,10 +31,10 @@ package:
 
 clean:
 	find src -type d -name "__pycache__" -exec rm -r {} +
-	find src -type d -name ".mypy_cache" -exec rm -r {} +
+	find -type d -name ".mypy_cache" -exec rm -r {} +
 	rm -rf .venv
 	rm -rf .pytest_cache
 	rm -rf build dist
 	rm -f pacman.spec.bak
 
-.PHONY: install run debug clean lint lint-strict test package
+.PHONY: install run debug clean lint lint-strict test package help

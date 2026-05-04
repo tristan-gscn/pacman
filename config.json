@@ -7,7 +7,7 @@
 	"points_per_pacgum": 1,
 	"points_per_super_pacgum": 5,
 	"points_per_ghost": 10,
-	"seed": 56,
+	"seed": 54,
 	"level_max_time": 150,
 	"levels_to_generate": 10
 

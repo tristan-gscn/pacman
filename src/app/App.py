@@ -34,10 +34,17 @@ class App:
     _KEY_KP_PERIOD = 65454
 
     _KP_TO_CHAR = {
-        _KEY_KP_0: "0", _KEY_KP_1: "1", _KEY_KP_2: "2",
-        _KEY_KP_3: "3", _KEY_KP_4: "4", _KEY_KP_5: "5",
-        _KEY_KP_6: "6", _KEY_KP_7: "7", _KEY_KP_8: "8",
-        _KEY_KP_9: "9", _KEY_KP_PERIOD: ".",
+        _KEY_KP_0: "0",
+        _KEY_KP_1: "1",
+        _KEY_KP_2: "2",
+        _KEY_KP_3: "3",
+        _KEY_KP_4: "4",
+        _KEY_KP_5: "5",
+        _KEY_KP_6: "6",
+        _KEY_KP_7: "7",
+        _KEY_KP_8: "8",
+        _KEY_KP_9: "9",
+        _KEY_KP_PERIOD: ".",
     }
     _KEY_UP = 65362
     _KEY_DOWN = 65364
@@ -47,15 +54,20 @@ class App:
     _KEY_A = 97
 
     _KONAMI_CODE = [
-        _KEY_UP, _KEY_UP, _KEY_DOWN, _KEY_DOWN,
-        _KEY_LEFT, _KEY_RIGHT, _KEY_LEFT, _KEY_RIGHT,
-        _KEY_B, _KEY_A, _KEY_ENTER,
+        _KEY_UP,
+        _KEY_UP,
+        _KEY_DOWN,
+        _KEY_DOWN,
+        _KEY_LEFT,
+        _KEY_RIGHT,
+        _KEY_LEFT,
+        _KEY_RIGHT,
+        _KEY_B,
+        _KEY_A,
+        _KEY_ENTER,
     ]
 
-    def __init__(
-        self,
-        config_path: str | None = None
-    ) -> None:
+    def __init__(self, config_path: str | None = None) -> None:
         """Initialize the application.
 
         Args:
@@ -82,6 +94,7 @@ class App:
         self.ui_mode = UIMode.MAIN_MENU
         self.mazegen = MazeGenerator(size=(self.config.width,
                                            self.config.height))
+        self.mazegen.generate(seed=self.config.seed)
         self._konami_buffer: list[int] = []
 
     def run(self) -> None:
@@ -91,7 +104,7 @@ class App:
         and starts the global renderer with necessary callbacks.
         """
         try:
-            self.mazegen.generate()
+            self.mazegen.generate(seed=self.config.seed)
             path_finder: FindPath = FindPath(self.mazegen.maze)
             self.game_engine = GameEngine(self.mazegen, path_finder,
                                           self.game_states)
@@ -155,8 +168,7 @@ class App:
                 self.ui_mode = UIMode.IN_GAME
             elif keycode == self._KEY_ESCAPE:
                 self.ui_mode = UIMode.MAIN_MENU
-            elif (keycode == self._KEY_SPACE
-                  and self.game_engine is not None
+            elif (keycode == self._KEY_SPACE and self.game_engine is not None
                   and self.game_engine.cheat_mode):
                 self.advance_level()
             return
@@ -183,7 +195,7 @@ class App:
             self.game_states.time_remaining = self.config.level_max_time
             self.game_states.current_lives = self.config.lives
             if self.game_engine is not None:
-                self.mazegen.generate()
+                self.mazegen.generate(seed=self.config.seed)
                 self.game_engine.rebirth()
                 self.game_engine._generate_pacgums()
             self.ui_mode = UIMode.IN_GAME
@@ -229,10 +241,9 @@ class App:
                 new_score = self.game_states.score
 
                 # Load existing scores and sort them to find the 10th score
-                existing_scores = sorted(
-                    scores_dict.items(),
-                    key=lambda x: x[1], reverse=True
-                )
+                existing_scores = sorted(scores_dict.items(),
+                                         key=lambda x: x[1],
+                                         reverse=True)
 
                 can_save = False
                 if len(existing_scores) < 10:
@@ -260,7 +271,7 @@ class App:
                     with open(self.config.highscore_filename, "w") as f:
                         f.write(json.dumps(scores_dict, indent=2))
             except Exception as e:
-                print(e)  # TODO Improving the message displayed
+                print(e)
             self.ui_mode = UIMode.MAIN_MENU
             return
         if keycode == self._KEY_BACKSPACE:

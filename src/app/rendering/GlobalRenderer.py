@@ -146,6 +146,18 @@ class GlobalRenderer:
             "down":
             self.sprite_renderer.load_sprite_frames(
                 self.game_engine.player.sprites.mov_down),
+            "god_left":
+            self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_left_god),
+            "god_right":
+            self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_right_god),
+            "god_up":
+            self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_up_god),
+            "god_down":
+            self.sprite_renderer.load_sprite_frames(
+                self.game_engine.player.sprites.mov_down_god),
             "death":
             self.sprite_renderer.load_sprite_frames(
                 self.game_engine.player.sprites.death)
@@ -417,6 +429,8 @@ class GlobalRenderer:
                 self.game_renderer.offset_x, self.game_renderer.offset_y)
 
         direction = getattr(self.game_engine.player, "direction", "right")
+        if self.game_engine.cheat_mode and direction != "death":
+            direction = "god_" + direction
         frames = self.player_frames.get(direction, self.player_frames["right"])
         self.sprite_renderer.render_sprite_frame(self.game_engine.player.x,
                                                  self.game_engine.player.y,

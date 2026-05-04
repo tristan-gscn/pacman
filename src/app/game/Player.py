@@ -15,4 +15,8 @@ class Player(Actor):
             mov_right="pacman/mov_right.png",
             mov_up="pacman/mov_up.png",
             mov_down="pacman/mov_down.png",
+            mov_left_god="pacman/mov_left_god.png",
+            mov_right_god="pacman/mov_right_god.png",
+            mov_up_god="pacman/mov_up_god.png",
+            mov_down_god="pacman/mov_down_god.png"
         )

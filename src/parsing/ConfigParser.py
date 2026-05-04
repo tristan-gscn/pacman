@@ -55,4 +55,7 @@ class ConfigParser:
             object_pairs_hook=reject_duplicates
         )
 
-        return Configuration.model_validate(cleaned)
+        validated_data = Configuration.model_validate(cleaned)
+        if validated_data.seed is None:
+            validated_data.seed = 0
+        return validated_data
